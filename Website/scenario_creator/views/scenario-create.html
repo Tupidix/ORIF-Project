@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scenario creator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-custom p-6">
+  <nav class="bg-white p-4 rounded shadow-md mb-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between">
+        <div class="flex space-x-8">
+          <a href="/scenarios" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des scénarios</a>
+          <a href="/menus" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des menus</a>
+        </div>
+        <a href="/help" class="text-xl font-bold text-gray-700 hover:text-blue-500">Aide</a>
+      </div>
+    </div>
+  </nav>
+      
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow-md border-custom">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Créateur de scénario</h1>
+    </div>
+    <form id="scenario-form">
+      <div class="mb-4">
+        <label class="block text-gray-700">Nom :</label>
+        <input type="text" id="name" class="w-full px-3 py-2 border rounded" required placeholder="Le nom du scénario">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700">Description :</label>
+        <input type="text" id="description" class="w-full px-3 py-2 border rounded" required placeholder="La description du scénario">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700">Mode :</label>
+        <select id="mode" class="w-full px-3 py-2 border rounded" required>
+          <option value="Learning">Apprentissage</option>
+          <option value="Training">Entraînement</option>
+          <option value="Exam">Examen</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700">Difficulté :</label>
+        <select id="level" class="w-full px-3 py-2 border rounded" required>
+          <option value="Begginner">Débutant</option>
+          <option value="Medium">Intermédiaire</option>
+          <option value="Expert">Expert</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700">Temps alloué :</label>
+        <input type="number" step="5" value="15" min="5" max="60" id="allowedTime" class="w-full px-3 py-2 border rounded" required>
+      </div>
+
+      <!-- Section des validateurs -->
+      <div class="mb-4">
+        <label class="block text-gray-700">Validateurs :</label>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center">
+            <input type="checkbox" id="position" class="mr-2">
+            <label for="position" class="text-gray-700">Position</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="rotation" class="mr-2">
+            <label for="rotation" class="text-gray-700">Rotation</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="order" class="mr-2">
+            <label for="order" class="text-gray-700">Ordre</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section des boissons -->
+      <div class="mb-4">
+        <label class="block text-gray-700">Boissons :</label>
+        <div id="drinks-list" class="space-y-2"></div>
+        <button type="button" id="add-drink" class="text-white px-4 py-2 rounded mt-2">Ajouter une boisson</button>
+      </div>
+
+      <!-- Section des extras -->
+      <div class="mb-4">
+        <label class="block text-gray-700">Extras :</label>
+        <div id="extras-list" class="space-y-2"></div>
+        <button type="button" id="add-extra" class="text-white px-4 py-2 rounded mt-2">Ajouter un extra</button>
+      </div>
+
+      <!-- Section des menus -->
+      <div id="menus" class="space-y-4"></div>
+      <button type="button" id="add-menu" class="text-white px-4 py-2 rounded">Ajouter un menu</button>
+
+      <div class="mt-4">
+        <button type="button" id="save-scenario" class="text-white px-4 py-2 rounded ml-2">Sauvegarder le scénario</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="/js/scenarioCreator.js" defer></script>
+</body>
+</html>

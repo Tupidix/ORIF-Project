@@ -1,0 +1,131 @@
+{
+    "name": "Service Simple",
+    "description": "Un défi pour les débutants visant à placer les couverts sans erreur.",
+    "mode": "Training",
+    "level": "Begginner",
+    "allowedTime": 12,
+    "validator": {
+      "position": true,
+      "rotation": false,
+      "order": false
+    },
+    "menus": [
+      {
+        "name": "Dîner Classique",
+        "description": "Un menu équilibré pour un repas traditionnel.",
+        "appetizer": "Terrine de campagne",
+        "mainCourse": "Poulet rôti aux herbes et légumes",
+        "dessert": "Mousse au chocolat",
+        "cutleryToPlace": {
+          "Plate": {
+            "tag": "Plate",
+            "parent": "Table",
+            "placementOrderIndex": 0,
+            "offset": {
+              "position": { "x": 0, "y": 0.81, "z": 0 },
+              "rotation": { "x": -0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          },
+          "DinnerFork": {
+            "tag": "DinnerFork",
+            "parent": "Plate",
+            "placementOrderIndex": 1,
+            "offset": {
+              "position": { "x": 0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DinnerKnife": {
+            "tag": "DinnerKnife",
+            "parent": "Plate",
+            "placementOrderIndex": 2,
+            "offset": {
+              "position": { "x": -0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DessertFork": {
+            "tag": "DessertFork",
+            "parent": "Plate",
+            "placementOrderIndex": 3,
+            "offset": {
+              "position": { "x": 0, "y": 0, "z": -0.16 },
+              "rotation": { "x": 0, "y": 0, "z": 0.7071, "w": 0.7071 }
+            }
+          },
+          "GlassWater": {
+            "tag": "GlassWater",
+            "parent": "Table",
+            "placementOrderIndex": 4,
+            "offset": {
+              "position": { "x": -0.25, "y": 0.81, "z": -0.2 },
+              "rotation": { "x": 0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          }
+        }
+      },
+      {
+        "name": "Escapade Méditerranéenne",
+        "description": "Des plats ensoleillés pour une ambiance détendue.",
+        "appetizer": "Bruschetta",
+        "mainCourse": "Gratin de légumes méditerranéens",
+        "dessert": "Panna cotta",
+        "cutleryToPlace": {
+          "Plate": {
+            "tag": "Plate",
+            "parent": "Table",
+            "placementOrderIndex": 0,
+            "offset": {
+              "position": { "x": 0, "y": 0.81, "z": 0 },
+              "rotation": { "x": -0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          },
+          "SaladFork": {
+            "tag": "SaladFork",
+            "parent": "Plate",
+            "placementOrderIndex": 1,
+            "offset": {
+              "position": { "x": 0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DinnerKnife": {
+            "tag": "DinnerKnife",
+            "parent": "Plate",
+            "placementOrderIndex": 2,
+            "offset": {
+              "position": { "x": -0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DessertSpoon": {
+            "tag": "DessertSpoon",
+            "parent": "Plate",
+            "placementOrderIndex": 3,
+            "offset": {
+              "position": { "x": 0, "y": 0, "z": -0.16 },
+              "rotation": { "x": 0, "y": 0, "z": 0.7071, "w": 0.7071 }
+            }
+          },
+          "GlassWine": {
+            "tag": "GlassWine",
+            "parent": "Table",
+            "placementOrderIndex": 4,
+            "offset": {
+              "position": { "x": -0.25, "y": 0.81, "z": -0.2 },
+              "rotation": { "x": 0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          }
+        }
+      }
+    ],
+    "drinks": [
+      { "type": "Eau minérale", "name": null },
+      { "type": "Vin rouge", "name": "Merlot 2019" }
+    ],
+    "extras": [
+      { "name": "Pain", "tag": "Bread" },
+      { "name": "Carafe d'eau", "tag": "WaterJug" }
+    ]
+  }
+  

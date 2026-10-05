@@ -1,0 +1,38 @@
+body {
+    font-family: 'Playfair Display', serif;
+  }
+  
+  label {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+  }
+  
+  button {
+    background-color: #257494;
+  }
+  
+  button:hover {
+    background-color: #1a5b72;
+  }
+  
+  .border-custom {
+    border: 2px solid #257494;
+  }
+  
+  .bg-custom {
+    background-color: #f0f4f8;
+  }
+
+  .icon-container {
+    max-height: 100%;
+  }
+
+  .hidden {
+      display: none;
+  }
+  
+  .utensil-icon {
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+  }

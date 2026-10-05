@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &592424501077368443
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6459727454604134721}
+  - component: {fileID: 6396864361314754779}
+  m_Layer: 0
+  m_Name: PrefabCutleryManager
+  m_TagString: CutleryManager
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6459727454604134721
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592424501077368443}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6396864361314754779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592424501077368443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e7faeaf2ba5ee44a812d414a8274bc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabEntries:
+  - tag: Plate
+    prefab: {fileID: 4877303592471198271, guid: 3117ef4106abbba45ba9ff688bf2acc1,
+      type: 3}
+  - tag: ButterKnife
+    prefab: {fileID: 3957642811588644928, guid: d1d809a11f2c484439bc5d0f3682d911,
+      type: 3}
+  - tag: CarvingFork
+    prefab: {fileID: 7923262506307216224, guid: b8473b0532f2e8a4d855c0d9da043f8c,
+      type: 3}
+  - tag: DessertFork
+    prefab: {fileID: 1115565635073184002, guid: 3c20828280b2f464b84ad4c4092096f0,
+      type: 3}
+  - tag: DessertKnife
+    prefab: {fileID: 5388324765597079121, guid: 137fccac3bd6b244195620b8e03b6819,
+      type: 3}
+  - tag: DessertSpoon
+    prefab: {fileID: 3280975075694207437, guid: 85c9901ae94af574abfdda41e42e09b1,
+      type: 3}
+  - tag: DinnerFork
+    prefab: {fileID: 2145381282172038240, guid: 62b08f17c4f155f4dbe18886a3fb38d5,
+      type: 3}
+  - tag: DinnerKnife
+    prefab: {fileID: 3360741125927159708, guid: 187d6e03c2df2ce418431c74f650bceb,
+      type: 3}
+  - tag: DinnerSpoon
+    prefab: {fileID: 4161430682431535099, guid: 588cf3edbae03c843b9eb65e83515e1e,
+      type: 3}
+  - tag: FishFork
+    prefab: {fileID: 2241204485580815773, guid: 602e4ca7acd942b42945021291f76220,
+      type: 3}
+  - tag: FishKnife
+    prefab: {fileID: 8092744036074760971, guid: c71eaf7cdd5dd4649923ad7f7b126ecf,
+      type: 3}
+  - tag: FruitFork
+    prefab: {fileID: 8018954653028571142, guid: c2b634d1e00d18a43936ad40671bb1e7,
+      type: 3}
+  - tag: FruitKnife
+    prefab: {fileID: 5503513923795001556, guid: e0c90b4ee99ba9945a9c5549617d0f89,
+      type: 3}
+  - tag: FruitSpoon
+    prefab: {fileID: 5639111957739439107, guid: 8b0f5bc3c76cef34b80b05b5164b106e,
+      type: 3}
+  - tag: GlassWater
+    prefab: {fileID: 6729920512437288076, guid: 18d732901a320164d9433321587a098b,
+      type: 3}
+  - tag: GlassWine
+    prefab: {fileID: 8793384586918747933, guid: 0b8eea44c9d767b48a17533b721045e7,
+      type: 3}
+  - tag: SaladFork
+    prefab: {fileID: 5379078832537372996, guid: 74bf5b22a8bc029448e5a5e556d0fd3b,
+      type: 3}
+  - tag: SteakKnife
+    prefab: {fileID: 4294590698363359261, guid: c130df8b4cdea864f87f28bf6a1dc52b,
+      type: 3}
+  - tag: TeaSpoon
+    prefab: {fileID: 8915027907594063136, guid: 0a7ddba11e69aff429aaffb0a5954889,
+      type: 3}
+  - tag: WaterJug
+    prefab: {fileID: 5688728176399819011, guid: f8b0a7cf8dcf69d4bbcb6dd534fae8f3,
+      type: 3}
+  - tag: Bread
+    prefab: {fileID: 1949764279326963751, guid: 8688a64e40ff0784cb04ab72cf717da1,
+      type: 3}
+  - tag: FlowerVase
+    prefab: {fileID: 8472258707115455945, guid: c5267f0259657d747887fbb3578f050d,
+      type: 3}
+  - tag: Hint
+    prefab: {fileID: 5975298937170231863, guid: 2b945371c8997bb48aa5b627e44b5d69,
+      type: 3}
+  - tag: None
+    prefab: {fileID: 5975298937170231863, guid: f8bce33978a5a9a44905aa47587948da,
+      type: 3}

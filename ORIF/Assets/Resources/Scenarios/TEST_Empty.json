@@ -1,0 +1,51 @@
+{
+  "name": "Test only setup",
+  "description": "Just a test scenario to help debugging.",
+  "mode": "Learning",
+  "level": "Begginner",
+  "allowedTime": 5,
+  "validator": {
+    "position": true,
+    "rotation": true,
+    "order": true
+  },
+  "drinks": [
+    {
+      "type": "Vin rouge",
+      "name": "Gamaret"
+    }
+  ],
+  "extras": [
+      { "name": "Pain", "tag": "Bread" },
+      { "name": "Carafe d'eau", "tag": "WaterJug" }
+    ],
+  "menus": [
+    {
+      "name": "Main Course A",
+      "description": "This is the menu of the client A",
+      "appetizer": "AAA",
+      "mainCourse": "BBB",
+      "dessert": "CCC",
+      "cutleryToPlace": {
+        "Plate": {
+          "tag": "Plate",
+          "parent": "Table",
+          "placementOrderIndex": 0,
+          "offset": {
+            "position": {
+              "x": 0,
+              "y": 0.81,
+              "z": 0
+            },
+            "rotation": {
+              "x": -0.7071067811865479,
+              "y": 0,
+              "z": 0,
+              "w": 0.7071067811865471
+            }
+          }
+        }
+      }
+    }
+  ]
+}

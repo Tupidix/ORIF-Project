@@ -1,0 +1,154 @@
+Nom : Délices Marins
+Description : Un menu léger et raffiné à base de produits de la mer.
+Entrée : Tartare de saumon
+Plat : Filet de bar grillé accompagné de légumes vapeur
+Dessert : Tarte au citron meringuée
+Ustensiles :
+Assiette [512 280] [0]
+Fourchette à poisson [744 274] [0]
+Couteau à poisson [256 282] [0]
+Fourchette à salade [803 272] [0]
+Couteau à beurre [195 283] [0]
+Fourchette à dessert [509 485] [90]
+Verre à eau [257 475] [0]
+Verre à vin [135 475] [0]
+
+================================================================================
+
+Nom : Festin Carnivore
+Description : Un repas robuste pour les amateurs de viande.
+Entrée : Foie gras accompagné de toasts grillés
+Plat : Côte de bœuf avec gratin dauphinois
+Dessert : Fondant au chocolat
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à diner [684 286] [0]
+Couteau à viande [307 303] [0]
+Fourchette à salade [751 304] [0]
+Couteau à beurre [200 296] [0]
+Cuillère à dessert [x y] [90]
+Verre à eau [257 475] [0]
+
+================================================================================
+
+Nom : Saveurs Méditerranéennes
+Description : Un menu ensoleillé pour un moment de détente.
+Entrée : Bruschetta tomate-basilic
+Plat : Dorade royale au four avec légumes grillés
+Dessert : Sorbet citron-basilic
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à poisson [662 294] [0]
+Couteau à poisson [326 235] [0]
+Fourchette à salade [729 287] [0]
+Couteau à beurre [277 277] [0]
+Cuillère à dessert [227 295] [0]
+
+================================================================================
+
+Nom : Douceur Automnale
+Description : Un menu réconfortant aux saveurs de saison.
+Entrée : Velouté de potiron
+Plat : Poulet rôti aux pommes de terre
+Dessert : Tarte aux pommes
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à diner [692 293] [0]
+Cuillère à diner [747 292] [0]
+Couteau à diner [323 314] [0]
+Fourchette à dessert [497 466] [-90]
+
+================================================================================
+
+Nom : Plaisir Végétarien
+Description : Une explosion de saveurs sans viande.
+Entrée : Salade de roquette et noix
+Plat : Risotto aux champignons
+Dessert : Panna cotta aux fruits rouges
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à salade [695 290] [0]
+Fourchette à diner [760 295] [0]
+Couteau à diner [290 315] [0]
+Cuillère à dessert [500 490] [90]
+Verre à eau [285 510] [0]
+
+================================================================================
+
+Nom : Trésors de l’Océan
+Description : Une immersion dans les saveurs iodées.
+Entrée : Carpaccio de Saint-Jacques avec huile d’olive et citron
+Plat : Lotte à la crème accompagnée de riz basmati
+Dessert : Mousse au chocolat
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à poisson [700 300] [0]
+Couteau à poisson [285 310] [0]
+Cuillère à dessert [500 490] [90]
+Cuillère à thé [500 540] [90]
+Verre à vin [290 490] [0]
+
+================================================================================
+
+Nom : Brunch Gourmand
+Description : Une matinée prolongée et savoureuse.
+Entrée : Œuf mollet sur un lit de salade
+Plat : Pancakes au sirop d’érable et fruits frais
+Dessert : Muffin au chocolat
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à salade [690 285] [0]
+Couteau à diner [310 305] [0]
+Fourchette à dessert [500 465] [-90]
+Couteau à beurre [240 300] [0]
+Cuillère à dessert [495 510] [90]
+Verre à vin [290 490] [0]
+
+================================================================================
+
+Nom : Évasion Italienne
+Description : Un menu qui sent bon l’Italie.
+Entrée : Antipasti variés (artichauts, olives, tomates séchées)
+Plat : Lasagnes maison aux légumes
+Dessert : Tiramisu
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à salade [705 295] [0]
+Fourchette à diner [785 300] [0]
+Couteau à diner [275 315] [0]
+Cuillère à dessert [500 485] [90]
+Verre à eau [275 502] [0]
+Verre à vin [185 503] [0]
+
+
+
+================================================================================
+
+Nom : Dîner Raffiné
+Description : Un repas élégant et sophistiqué.
+Entrée : Tartare de thon rouge
+Plat : Magret de canard accompagné de purée de céleri
+Dessert : Crème brûlée
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à poisson [700 300] [0]
+Couteau à poisson [300 315] [0]
+Fourchette à diner [775 300] [0]
+Couteau à viande [215 315] [0]
+Cuillère à dessert [500 460] [-90]
+
+================================================================================
+
+Nom : Campagne Authentique
+Description : Des saveurs rustiques et généreuses.
+Entrée : Terrine de campagne avec cornichons
+Plat : Confit de canard avec pommes rôties
+Dessert : Clafoutis aux cerises
+Ustensiles :
+Assiette [500 300] [0]
+Fourchette à salade [695 280] [0]
+Couteau à diner [290 320] [0]
+Fourchette à diner [775 300] [0]
+Couteau à viande [215 318] [0]
+Fourchette à dessert [500 490] [90]
+Verre à eau [250 515] [0]

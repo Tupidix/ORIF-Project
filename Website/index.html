@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scenario Creator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=East+Rusty+Demo&family=Playfair+Display&display=swap');
+    
+    body {
+      font-family: 'Playfair Display', serif;
+    }
+
+    label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+    }
+
+    button {
+      background-color: #257494;
+    }
+
+    button:hover {
+      background-color: #1a5b72;
+    }
+
+    .border-custom {
+      border: 2px solid #257494;
+    }
+  </style>
+</head>
+<body class="bg-custom p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow-md border-custom">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Créateur de scénario</h1>
+      <div>
+        <input type="file" id="import-scenario" class="hidden">
+        <button type="button" id="import-scenario-btn" class="text-white px-4 py-2 rounded">Importer un scénario</button>
+      </div>
+    </div>
+    <form id="scenario-form">
+      <div class="mb-4">
+        <label class="block text-gray-700">Nom :</label>
+        <input type="text" id="name" class="w-full px-3 py-2 border rounded" required placeholder="Le nom du scénario">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Description :</label>
+        <input type="text" id="description" class="w-full px-3 py-2 border rounded" required placeholder="La description du scénario">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Mode :</label>
+        <select id="mode" class="w-full px-3 py-2 border rounded" required>
+          <option value="Learning">Apprentissage</option>
+          <option value="Training">Entraînement</option>
+          <option value="Exam">Examen</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Difficulté :</label>
+        <select id="level" class="w-full px-3 py-2 border rounded" required>
+          <option value="Begginner">Débutant</option>
+          <option value="Medium">Intermédiaire</option>
+          <option value="Expert">Expert</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Temps alloué :</label>
+        <input type="number" step="5" value="15" min="5" max="60" id="allowedTime" class="w-full px-3 py-2 border rounded" required>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Validateur :</label>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center">
+            <input type="checkbox" id="position" class="mr-2">
+            <label class="text-gray-700">Position</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="rotation" class="mr-2">
+            <label class="text-gray-700">Rotation</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="order" class="mr-2">
+            <label class="text-gray-700">Ordre</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-gray-700">Boissons :</label>
+        <div id="drinks-list" class="space-y-2">
+        </div>
+        <button type="button" id="add-drink" class="text-white px-4 py-2 rounded mt-2">Ajouter une boisson</button>
+      </div>
+
+      <div id="menus" class="space-y-4"></div>
+      <button type="button" id="add-menu" class="text-white px-4 py-2 rounded">Ajouter un menu</button>
+      <button type="submit" class="text-white px-4 py-2 rounded mt-4">Exporter le scénario</button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const cutleryOptions = [
+        { value: 'Plate', text: 'Assiette' },
+        { value: 'ButterKnife', text: 'Couteau à beurre' },
+        { value: 'CarvingFork', text: 'Fourchette à découper' },
+        { value: 'DessertFork', text: 'Fourchette à dessert' },
+        { value: 'DessertKnife', text: 'Couteau à dessert' },
+        { value: 'DessertSpoon', text: 'Cuillère à dessert' },
+        { value: 'DinnerFork', text: 'Fourchette à diner' },
+        { value: 'DinnerKnife', text: 'Couteau à diner' },
+        { value: 'DinnerSpoon', text: 'Cuillère à diner' },
+        { value: 'FishFork', text: 'Fourchette à poisson' },
+        { value: 'FishKnife', text: 'Couteau à poisson' },
+        { value: 'FruitFork', text: 'Fourchette à fruit' },
+        { value: 'FruitKnife', text: 'Couteau à fruit' },
+        { value: 'FruitSpoon', text: 'Cuillère à fruit' },
+        { value: 'GlassWater', text: 'Verre à eau' },
+        { value: 'GlassWine', text: 'Verre à vin' },
+        { value: 'SaladFork', text: 'Fourchette à salade' },
+        { value: 'SteakKnife', text: 'Couteau à viande' },
+        { value: 'TeaSpoon', text: 'Cuillère à thé' },
+        { value: 'Table', text: 'Table' }
+      ];
+
+      function updateAddMenuButton() {
+        const menus = document.querySelectorAll('.menu');
+        const addMenuButton = document.getElementById('add-menu');
+        if (menus.length >= 2) {
+          addMenuButton.style.display = 'none';
+        } else {
+          addMenuButton.style.display = 'block';
+        }
+      }
+
+      document.getElementById('add-menu').addEventListener('click', function () {
+        const menuDiv = document.createElement('div');
+        menuDiv.className = 'menu p-4 border rounded bg-gray-100 my-2';
+        menuDiv.innerHTML = `
+          <label class="block text-gray-700">Nom du menu :</label>
+          <input type="text" class="menu-name w-full px-3 py-2 border rounded mb-2" required placeholder="Le nom du menu">
+          <label class="block text-gray-700">Description :</label>
+          <input type="text" class="menu-description w-full px-3 py-2 border rounded mb-2" required placeholder="La description du menu">
+          <label class="block text-gray-700">Entrée :</label>
+          <input type="text" class="menu-appetizer w-full px-3 py-2 border rounded mb-2" required placeholder="L'entrée du menu">
+          <label class="block text-gray-700">Plat :</label>
+          <input type="text" class="menu-main-course w-full px-3 py-2 border rounded mb-2" required placeholder="Le plat principal du menu">
+          <label class="block text-gray-700">Dessert :</label>
+          <input type="text" class="menu-dessert w-full px-3 py-2 border rounded mb-2" required placeholder="Le dessert du menu">
+          <div class="cutlery-container"></div>
+          <button type="button" class="add-cutlery text-white px-4 py-2 rounded mt-2">Ajouter un couvert</button>
+          <button type="button" class="remove-menu text-white px-4 py-2 rounded mt-2">Retirer le menu</button>
+        `;
+        document.getElementById('menus').appendChild(menuDiv);
+
+        updateAddMenuButton();
+
+        menuDiv.querySelector('.add-cutlery').addEventListener('click', function () {
+          const cutleryContainer = menuDiv.querySelector('.cutlery-container');
+          addCutlery(cutleryContainer);
+        });
+
+        menuDiv.querySelector('.remove-menu').addEventListener('click', function () {
+          menuDiv.remove();
+          updateAddMenuButton();
+        });
+      });
+
+      function addCutlery(container) {
+        const orderIndex = container.children.length;
+        const cutleryDiv = document.createElement('div');
+        cutleryDiv.className = 'cutlery flex flex-wrap mb-2 items-end space-y-2';
+
+        const availableOptions = cutleryOptions.filter(option => 
+          !Array.from(container.querySelectorAll('.cutlery-tag')).some(select => select.value === option.value)
+        );
+
+        cutleryDiv.innerHTML = `
+          <div class="flex space-x-2 w-full">
+            <select class="cutlery-tag w-1/4 px-3 py-2 border rounded" required>
+              ${availableOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('')}
+            </select>
+            <select class="cutlery-parent w-1/4 px-3 py-2 border rounded" required>
+              <option value="Table">Table</option>
+              <option value="Plate">Assiette</option>
+              ${availableOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('')}
+            </select>
+            <input type="number" class="cutlery-order w-1/12 px-3 py-2 border rounded" value="${orderIndex}" min="0" max="${orderIndex}" required>
+            <button type="button" class="remove-cutlery text-white px-2 py-1 rounded">Retirer le couvert</button>
+          </div>
+          <div class="flex space-x-2 w-full">
+            <label class="block text-gray-700 w-2/12">Position :</label>
+            <input type="number" class="position-x w-2/12 px-3 py-2 border rounded" placeholder="X" value="0" step="0.001">
+            <input type="number" class="position-y w-2/12 px-3 py-2 border rounded" placeholder="Y" value="0" step="0.001">
+            <input type="number" class="position-z w-2/12 px-3 py-2 border rounded" placeholder="Z" value="0" step="0.001">
+          </div>
+          <div class="flex space-x-2 w-full">
+            <label class="block text-gray-700 w-2/12">Rotation :</label>
+            <input type="number" class="rotation-x w-2/12 px-3 py-2 border rounded" placeholder="X" value="0" step="0.001">
+            <input type="number" class="rotation-y w-2/12 px-3 py-2 border rounded" placeholder="Y" value="0" step="0.001">
+            <input type="number" class="rotation-z w-2/12 px-3 py-2 border rounded" placeholder="Z" value="0" step="0.001">
+          </div>
+        `;
+        container.appendChild(cutleryDiv);
+
+        updateOrderIndexes(container);
+
+        cutleryDiv.querySelector('.remove-cutlery').addEventListener('click', function () {
+          cutleryDiv.remove();
+          updateOrderIndexes(container);
+        });
+
+        cutleryDiv.querySelector('.cutlery-order').addEventListener('change', function () {
+          validateOrderIndexes(container, cutleryDiv.querySelector('.cutlery-order'));
+        });
+      }
+
+      function validateOrderIndexes(container, changedInput) {
+        const orderIndexes = Array.from(container.querySelectorAll('.cutlery-order')).map(input => parseInt(input.value));
+        const uniqueOrderIndexes = new Set(orderIndexes);
+        const maxIndex = container.children.length - 1;
+
+        if (orderIndexes.length !== uniqueOrderIndexes.size) {
+          alert("Order index must be unique. Please choose a different order.");
+          changedInput.value = changedInput.defaultValue;
+        } else if (parseInt(changedInput.value) > maxIndex) {
+          alert(`Order index cannot be greater than ${maxIndex}. Automatically setting to the maximum allowed.`);
+          changedInput.value = maxIndex;
+          updateOrderIndexes(container);
+        } else {
+          changedInput.defaultValue = changedInput.value;
+          updateOrderIndexes(container);
+        }
+      }
+
+      function updateOrderIndexes(container) {
+        Array.from(container.children).forEach((child, index) => {
+          const orderInput = child.querySelector('.cutlery-order');
+          orderInput.max = container.children.length - 1;
+        });
+
+        const allOptions = cutleryOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('');
+        const selectedValues = Array.from(container.querySelectorAll('.cutlery-tag')).map(select => select.value);
+
+        container.querySelectorAll('.cutlery-tag').forEach(select => {
+          const currentValue = select.value;
+          select.innerHTML = allOptions;
+          selectedValues.forEach(value => {
+            if (value !== currentValue) {
+              const optionToRemove = select.querySelector(`option[value="${value}"]`);
+              if (optionToRemove) optionToRemove.remove();
+            }
+          });
+          select.value = currentValue;
+        });
+      }
+
+      function degreesToRadians(degrees) {
+        return degrees * (Math.PI / 180);
+      }
+
+      function radiansToDegrees(radians) {
+        return radians * (180 / Math.PI);
+      }
+
+      function eulerToQuaternion(roll, pitch, yaw) {
+        roll = degreesToRadians(roll);
+        pitch = degreesToRadians(pitch);
+        yaw = degreesToRadians(yaw);
+
+        const cy = Math.cos(yaw * 0.5);
+        const sy = Math.sin(yaw * 0.5);
+        const cp = Math.cos(pitch * 0.5);
+        const sp = Math.sin(pitch * 0.5);
+        const cr = Math.cos(roll * 0.5);
+        const sr = Math.sin(roll * 0.5);
+
+        const qw = cr * cp * cy + sr * sp * sy;
+        const qx = sr * cp * cy - cr * sp * sy;
+        const qy = cr * sp * cy + sr * cp * sy;
+        const qz = cr * cp * sy - sr * sp * cy;
+
+        return { x: qx, y: qy, z: qz, w: qw };
+      }
+
+      function quaternionToEuler(qx, qy, qz, qw) {
+        const sinr_cosp = 2 * (qw * qx + qy * qz);
+        const cosr_cosp = 1 - 2 * (qx * qx + qy * qy);
+        const roll = Math.atan2(sinr_cosp, cosr_cosp);
+
+        const sinp = 2 * (qw * qy - qz * qx);
+        let pitch;
+        if (Math.abs(sinp) >= 1)
+          pitch = Math.sign(sinp) * Math.PI / 2;
+        else
+          pitch = Math.asin(sinp);
+
+        const siny_cosp = 2 * (qw * qz + qx * qy);
+        const cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+        const yaw = Math.atan2(siny_cosp, cosy_cosp);
+
+        return { x: radiansToDegrees(roll), y: radiansToDegrees(pitch), z: radiansToDegrees(yaw) };
+      }
+
+      // Gestion des boissons
+      document.getElementById('add-drink').addEventListener('click', function () {
+        const drinksList = document.getElementById('drinks-list');
+        const drinkItem = document.createElement('div');
+        drinkItem.className = 'drink-item flex items-center space-x-4';
+
+        const drinkSelect = document.createElement('select');
+        drinkSelect.className = 'drink-select w-1/3 px-3 py-2 border rounded';
+        drinkSelect.innerHTML = `
+          <option value="Eau minérale">Eau minérale</option>
+          <option value="Vin blanc">Vin blanc</option>
+          <option value="Vin rouge">Vin rouge</option>
+        `;
+
+        const drinkNameInput = document.createElement('input');
+        drinkNameInput.type = 'text';
+        drinkNameInput.className = 'drink-name w-1/3 px-3 py-2 border rounded hidden';
+        drinkNameInput.placeholder = 'Nom de la bouteille';
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'remove-drink text-white px-2 py-1 rounded';
+        removeButton.textContent = 'Retirer';
+
+        drinkItem.appendChild(drinkSelect);
+        drinkItem.appendChild(drinkNameInput);
+        drinkItem.appendChild(removeButton);
+        drinksList.appendChild(drinkItem);
+
+        // Afficher le champ de nom de la bouteille si nécessaire
+        drinkSelect.addEventListener('change', function () {
+          if (drinkSelect.value === 'Vin blanc' || drinkSelect.value === 'Vin rouge') {
+            drinkNameInput.classList.remove('hidden');
+          } else {
+            drinkNameInput.classList.add('hidden');
+            drinkNameInput.value = '';
+          }
+        });
+
+        removeButton.addEventListener('click', function () {
+          drinkItem.remove();
+        });
+      });
+
+      document.getElementById('scenario-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const drinks = Array.from(document.querySelectorAll('.drink-item')).map(item => {
+          const type = item.querySelector('.drink-select').value;
+          const name = item.querySelector('.drink-name').value || null;
+          return { type, name };
+        });
+
+        const scenario = {
+          name: document.getElementById('name').value,
+          description: document.getElementById('description').value,
+          mode: document.getElementById('mode').value,
+          level: document.getElementById('level').value,
+          allowedTime: parseFloat(document.getElementById('allowedTime').value),
+          validator: {
+            position: document.getElementById('position').checked,
+            rotation: document.getElementById('rotation').checked,
+            order: document.getElementById('order').checked
+          },
+          drinks: drinks,
+          menus: Array.from(document.querySelectorAll('.menu')).map(menu => {
+            const cutleryToPlace = {};
+            Array.from(menu.querySelectorAll('.cutlery')).forEach(cutlery => {
+              const tag = cutlery.querySelector('.cutlery-tag').value;
+              const position = {
+                x: parseFloat(cutlery.querySelector('.position-x').value),
+                y: parseFloat(cutlery.querySelector('.position-y').value),
+                z: parseFloat(cutlery.querySelector('.position-z').value)
+              };
+              const rotation = {
+                x: parseFloat(cutlery.querySelector('.rotation-x').value),
+                y: parseFloat(cutlery.querySelector('.rotation-y').value),
+                z: parseFloat(cutlery.querySelector('.rotation-z').value)
+              };
+              const quaternion = eulerToQuaternion(rotation.x, rotation.y, rotation.z);
+
+              cutleryToPlace[tag] = {
+                tag: tag,
+                parent: cutlery.querySelector('.cutlery-parent').value,
+                placementOrderIndex: parseInt(cutlery.querySelector('.cutlery-order').value, 10),
+                offset: {
+                  position: position,
+                  rotation: quaternion
+                }
+              };
+            });
+            return {
+              name: menu.querySelector('.menu-name').value,
+              description: menu.querySelector('.menu-description').value,
+              appetizer: menu.querySelector('.menu-appetizer').value,
+              mainCourse: menu.querySelector('.menu-main-course').value,
+              dessert: menu.querySelector('.menu-dessert').value,
+              cutleryToPlace: cutleryToPlace
+            };
+          })
+        };
+        
+        const jsonString = JSON.stringify(scenario, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${scenario.name}.json`;
+        link.click();
+      });
+
+      document.getElementById('import-scenario-btn').addEventListener('click', function() {
+        document.getElementById('import-scenario').click();
+      });
+
+      document.getElementById('import-scenario').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const data = JSON.parse(e.target.result);
+            fillFormWithScenario(data);
+          };
+          reader.readAsText(file);
+        }
+      });
+
+      function fillFormWithScenario(data) {
+        document.getElementById('name').value = data.name;
+        document.getElementById('description').value = data.description;
+        document.getElementById('mode').value = data.mode;
+        document.getElementById('level').value = data.level;
+        document.getElementById('allowedTime').value = data.allowedTime;
+        document.getElementById('position').checked = data.validator.position;
+        document.getElementById('rotation').checked = data.validator.rotation;
+        document.getElementById('order').checked = data.validator.order;
+
+        // Remplir les boissons
+        const drinksList = document.getElementById('drinks-list');
+        drinksList.innerHTML = ''; // Clear existing drinks
+        if (data.drinks !== undefined)
+        {data.drinks.forEach(drinkData => {
+          const drinkItem = document.createElement('div');
+          drinkItem.className = 'drink-item flex items-center space-x-4';
+
+          const drinkSelect = document.createElement('select');
+          drinkSelect.className = 'drink-select w-1/3 px-3 py-2 border rounded';
+          drinkSelect.innerHTML = `
+            <option value="Eau minérale">Eau minérale</option>
+            <option value="Vin blanc">Vin blanc</option>
+            <option value="Vin rouge">Vin rouge</option>
+          `;
+
+          const drinkNameInput = document.createElement('input');
+          drinkNameInput.type = 'text';
+          drinkNameInput.className = 'drink-name w-1/3 px-3 py-2 border rounded hidden';
+          drinkNameInput.placeholder = 'Nom de la bouteille';
+
+          const removeButton = document.createElement('button');
+          removeButton.type = 'button';
+          removeButton.className = 'remove-drink text-white px-2 py-1 rounded bg-red-500';
+          removeButton.textContent = 'Retirer';
+
+          drinkItem.appendChild(drinkSelect);
+          drinkItem.appendChild(drinkNameInput);
+          drinkItem.appendChild(removeButton);
+          drinksList.appendChild(drinkItem);
+
+          drinkSelect.value = drinkData.type;
+          if (drinkData.type === 'Vin blanc' || drinkData.type === 'Vin rouge') {
+            drinkNameInput.classList.remove('hidden');
+            drinkNameInput.value = drinkData.name || '';
+          }
+
+          drinkSelect.addEventListener('change', function () {
+            if (drinkSelect.value === 'Vin blanc' || drinkSelect.value === 'Vin rouge') {
+              drinkNameInput.classList.remove('hidden');
+            } else {
+              drinkNameInput.classList.add('hidden');
+              drinkNameInput.value = '';
+            }
+          });
+
+          removeButton.addEventListener('click', function () {
+            drinkItem.remove();
+          });
+        });
+      }
+        // Remplir les menus (votre code existant pour remplir les menus)
+        document.getElementById('menus').innerHTML = ''; // Clear existing menus
+
+        data.menus.forEach(menuData => {
+          const menuDiv = document.createElement('div');
+          menuDiv.className = 'menu p-4 border rounded bg-gray-100 my-2';
+          menuDiv.innerHTML = `
+            <label class="block text-gray-700">Nom du menu :</label>
+            <input type="text" class="menu-name w-full px-3 py-2 border rounded mb-2" required>
+            <label class="block text-gray-700">Description :</label>
+            <input type="text" class="menu-description w-full px-3 py-2 border rounded mb-2" required>
+            <label class="block text-gray-700">Entrée :</label>
+            <input type="text" class="menu-appetizer w-full px-3 py-2 border rounded mb-2" required>
+            <label class="block text-gray-700">Plat :</label>
+            <input type="text" class="menu-main-course w-full px-3 py-2 border rounded mb-2" required>
+            <label class="block text-gray-700">Dessert :</label>
+            <input type="text" class="menu-dessert w-full px-3 py-2 border rounded mb-2" required>
+            <div class="cutlery-container"></div>
+            <button type="button" class="add-cutlery text-white px-4 py-2 rounded mt-2">Ajouter un couvert</button>
+            <button type="button" class="remove-menu text-white px-4 py-2 rounded mt-2">Retirer le menu</button>
+          `;
+          document.getElementById('menus').appendChild(menuDiv);
+
+          menuDiv.querySelector('.menu-name').value = menuData.name;
+          menuDiv.querySelector('.menu-description').value = menuData.description;
+          menuDiv.querySelector('.menu-appetizer').value = menuData.appetizer || '';
+          menuDiv.querySelector('.menu-main-course').value = menuData.mainCourse || '';
+          menuDiv.querySelector('.menu-dessert').value = menuData.dessert || '';
+
+          menuDiv.querySelector('.add-cutlery').addEventListener('click', function () {
+            const cutleryContainer = menuDiv.querySelector('.cutlery-container');
+            addCutlery(cutleryContainer);
+          });
+
+          menuDiv.querySelector('.remove-menu').addEventListener('click', function () {
+            menuDiv.remove();
+            updateAddMenuButton();
+          });
+
+          // Remplir les couverts du menu (votre code existant)
+          for (const [key, cutleryData] of Object.entries(menuData.cutleryToPlace)) {
+            const cutleryContainer = menuDiv.querySelector('.cutlery-container');
+            const cutleryDiv = document.createElement('div');
+            cutleryDiv.className = 'cutlery flex flex-wrap mb-2 items-end space-y-2';
+
+            const availableOptions = cutleryOptions.filter(option => 
+              !Array.from(cutleryContainer.querySelectorAll('.cutlery-tag')).some(select => select.value === option.value)
+            );
+
+            const euler = quaternionToEuler(cutleryData.offset.rotation.x, cutleryData.offset.rotation.y, cutleryData.offset.rotation.z, cutleryData.offset.rotation.w);
+
+            cutleryDiv.innerHTML = `
+              <div class="flex space-x-2 w-full">
+                <select class="cutlery-tag w-1/4 px-3 py-2 border rounded" required>
+                  ${availableOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('')}
+                </select>
+                <select class="cutlery-parent w-1/4 px-3 py-2 border rounded" required>
+                  <option value="Table">Table</option>
+                  <option value="Plate">Assiette</option>
+                  ${availableOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join('')}
+                </select>
+                <input type="number" class="cutlery-order w-1/12 px-3 py-2 border rounded" value="${cutleryData.placementOrderIndex}" min="0" required>
+                <button type="button" class="remove-cutlery text-white px-2 py-1 rounded">Retirer le couvert</button>
+              </div>
+              <div class="flex space-x-2 w-full">
+                <label class="block text-gray-700 w-2/12">Position :</label>
+                <input type="number" class="position-x w-2/12 px-3 py-2 border rounded" placeholder="X" value="${cutleryData.offset.position.x}" step="0.001">
+                <input type="number" class="position-y w-2/12 px-3 py-2 border rounded" placeholder="Y" value="${cutleryData.offset.position.y}" step="0.001">
+                <input type="number" class="position-z w-2/12 px-3 py-2 border rounded" placeholder="Z" value="${cutleryData.offset.position.z}" step="0.001">
+              </div>
+              <div class="flex space-x-2 w-full">
+                <label class="block text-gray-700 w-2/12">Rotation :</label>
+                <input type="number" class="rotation-x w-2/12 px-3 py-2 border rounded" placeholder="X" value="${euler.x}" step="0.001">
+                <input type="number" class="rotation-y w-2/12 px-3 py-2 border rounded" placeholder="Y" value="${euler.y}" step="0.001">
+                <input type="number" class="rotation-z w-2/12 px-3 py-2 border rounded" placeholder="Z" value="${euler.z}" step="0.001">
+              </div>
+            `;
+            cutleryContainer.appendChild(cutleryDiv);
+
+            cutleryDiv.querySelector('.cutlery-tag').value = cutleryData.tag;
+            cutleryDiv.querySelector('.cutlery-parent').value = cutleryData.parent;
+
+            cutleryDiv.querySelector('.remove-cutlery').addEventListener('click', function () {
+              cutleryDiv.remove();
+              updateOrderIndexes(cutleryContainer);
+            });
+
+            cutleryDiv.querySelector('.cutlery-order').addEventListener('change', function () {
+              validateOrderIndexes(cutleryContainer, cutleryDiv.querySelector('.cutlery-order'));
+            });
+
+            updateOrderIndexes(cutleryContainer);
+          }
+        });
+
+        updateAddMenuButton();
+      }
+
+    });
+  </script>
+</body>
+</html>

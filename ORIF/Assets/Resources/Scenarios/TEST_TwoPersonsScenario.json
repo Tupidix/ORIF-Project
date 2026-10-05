@@ -1,0 +1,114 @@
+{
+  "name": "Test setup for 2 persons",
+  "description": "Just a test scenario to help debugging.",
+  "mode": "Learning",
+  "level": "Begginner",
+  "allowedTime": 5,
+  "validator": {
+    "position": true,
+    "rotation": true,
+    "order": true
+  },
+  "drinks": [
+    {
+      "type": "Vin rouge",
+      "name": "Gamaret"
+    }
+  ],
+  "extras": [
+      { "name": "Pain", "tag": "Bread" },
+      { "name": "Carafe d'eau", "tag": "WaterJug" }
+    ],
+  "menus": [
+    {
+      "name": "Main Course A",
+      "description": "This is the menu of the client A",
+      "appetizer": "AAA",
+      "mainCourse": "BBB",
+      "dessert": "CCC",
+      "cutleryToPlace": {
+        "Plate": {
+          "tag": "Plate",
+          "parent": "Table",
+          "placementOrderIndex": 0,
+          "offset": {
+            "position": {
+              "x": 0,
+              "y": 0.81,
+              "z": 0
+            },
+            "rotation": {
+              "x": -0.7071067811865479,
+              "y": 0,
+              "z": 0,
+              "w": 0.7071067811865471
+            }
+          }
+        },
+        "GlassWine": {
+          "tag": "GlassWine",
+          "parent": "Plate",
+          "placementOrderIndex": 1,
+          "offset": {
+            "position": {
+              "x": -0.274,
+              "y": 0,
+              "z": -0.137
+            },
+            "rotation": {
+              "x": 1,
+              "y": 0,
+              "z": 0,
+              "w": 6.123233995736766e-17
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Main Course B",
+      "description": "Plate B",
+      "appetizer": "ABC",
+      "mainCourse": "DEF",
+      "dessert": "GHIJ",
+      "cutleryToPlace": {
+        "Plate": {
+          "tag": "Plate",
+          "parent": "Table",
+          "placementOrderIndex": 0,
+          "offset": {
+            "position": {
+              "x": 0,
+              "y": 0.81,
+              "z": 0
+            },
+            "rotation": {
+              "x": -0.7071067811865479,
+              "y": 0,
+              "z": 0,
+              "w": 0.7071067811865471
+            }
+          }
+        },
+        "DessertSpoon": {
+          "tag": "DessertSpoon",
+          "parent": "Plate",
+          "placementOrderIndex": 1,
+          "offset": {
+            "position": {
+              "x": 0.001,
+              "y": 0,
+              "z": -0.23
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": -0.7071067811865478,
+              "w": 0.7071067811865472
+            }
+          }
+        }
+      }
+    }
+  ]
+}

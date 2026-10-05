@@ -1,0 +1,250 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &94203945573188295
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5566866714134606720}
+  - component: {fileID: 6567676274134479327}
+  - component: {fileID: 3337950531673903438}
+  - component: {fileID: 8123623423084193872}
+  - component: {fileID: 4771051698798496409}
+  - component: {fileID: 8029984037634542588}
+  - component: {fileID: 4976724151613129672}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: GameManager
+  m_Icon: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5566866714134606720
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6567676274134479327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f1bd08f39dacb24a9c1fcfbeac930f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _mainMenuSelectionUI: {fileID: 0}
+  _mainMenuScenarioPickerUI: {fileID: 0}
+  _useRemoteScenariosToggle: {fileID: 0}
+  _btnScenarioSelector: {fileID: 3992349191627788823, guid: 0002915d66da214408080c82d787ef86,
+    type: 3}
+  _pauseMenu: {fileID: 0}
+  _tipsMainMenu: {fileID: 0}
+  _tipsLearningMode: {fileID: 0}
+  _tipsExamMode: {fileID: 0}
+  _btnValidateCurrentMenu: {fileID: 0}
+  _jobSheet: {fileID: 0}
+  prefabManager: {fileID: 0}
+  _placementMaterialA: {fileID: 2100000, guid: cc5117a6e99e125469e5c8eb8a37c287, type: 2}
+  _placementMaterialB: {fileID: 2100000, guid: 09247ff7995c48642a1b8e58fe5b71dc, type: 2}
+  _defaultCutleryMaterial: {fileID: 2100000, guid: a58822858ebba014384d87b51245ca90,
+    type: 2}
+  _defaultPlateMaterial: {fileID: 2100000, guid: f40768fefed7b4142a68d0d8b015bbfb,
+    type: 2}
+  _defaultGlassMaterial: {fileID: 2100000, guid: 556aceb779a8dda44bbcb34534e0f544,
+    type: 2}
+  _currentItemMaterial: {fileID: 2100000, guid: af3175dd82cd92d42967e16acb5ac66b,
+    type: 2}
+  _interactorsL:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _interactorsR:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _interactor: {fileID: 0}
+  _table: {fileID: 4575849604893953741, guid: 2ffa699b634ec5b4a99774a62354e9e7, type: 3}
+  _trolly: {fileID: 1249204781787554306, guid: 164ad2a2bb5b5a14b9cb2656c9ae955f, type: 3}
+  _chair: {fileID: 2312896495227546652, guid: ea3675dc9e279014ebe814c3dfc8a987, type: 3}
+  _trollyCutleries:
+  - {fileID: 3057302239343333183, guid: ec7afaabfc092b142953b43edf91f15d, type: 3}
+  - {fileID: 4726051405137560636, guid: c4fb7b91a984345459b209f89262bdd0, type: 3}
+  - {fileID: 7689197230539432387, guid: bd2d9d3328706284ab49846d46ac3e5e, type: 3}
+  - {fileID: 2555376530643435111, guid: 62e4e6b69f9402e4fbc8f876c3da703c, type: 3}
+  - {fileID: 4277878049973637393, guid: 869ae6c2e5e4687419be89c5622d9aaf, type: 3}
+  - {fileID: 4832827739767183189, guid: d28a664a51a15ff48bcfa7ee49bdf9d6, type: 3}
+  light: {fileID: 0}
+  _tray: {fileID: 6415557945491880746, guid: d97dabb1c1fbd8448b696dc93b6f6f8f, type: 3}
+  _stepHelper: {fileID: 0}
+  _folderPaper: {fileID: 2588667718357729401, guid: 93bfd0a9327464942a1e417be25136a0,
+    type: 3}
+  _leftHand: {fileID: 0}
+  _timer: {fileID: 0}
+  _endGameReport: {fileID: 1966064718479302613, guid: 92703a355ab4c3245a4b8f5e5ac35bef,
+    type: 3}
+  _celebrationEndGame: {fileID: 0}
+  _celebrationEndGameTip: {fileID: 0}
+  _tablePlacement: {fileID: 0}
+  _arPlaneManager: {fileID: 0}
+  soundManager: {fileID: 0}
+  notification: {fileID: 0}
+  _trollyCollider: {fileID: 4449790572066973587, guid: 164ad2a2bb5b5a14b9cb2656c9ae955f,
+    type: 3}
+--- !u!114 &3337950531673903438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5db7ca6429dcd248b75342fbdcd31f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _scenario:
+    name: 
+    description: 
+    mode: 0
+    level: 0
+    menus: []
+    validator:
+      position: 0
+      rotation: 0
+      order: 0
+    allowedTime: 0
+    drinks: []
+    extras: []
+  txtScenarioName: {fileID: 0}
+  txtScenarioDescription: {fileID: 0}
+  drdMode: {fileID: 0}
+  drdLevel: {fileID: 0}
+  txtLevel: {fileID: 0}
+  cbxPosition: {fileID: 0}
+  cbxRotation: {fileID: 0}
+  cbxOrder: {fileID: 0}
+  rngTimer: {fileID: 0}
+--- !u!114 &8123623423084193872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a41671dad37b8443b6ea12f2f5a0820, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _scenario:
+    name: 
+    description: 
+    mode: 0
+    level: 0
+    menus: []
+    validator:
+      position: 0
+      rotation: 0
+      order: 0
+    allowedTime: 0
+    drinks: []
+    extras: []
+  txtMenuName: {fileID: 0}
+  txtItemName: {fileID: 0}
+  txtDescription: {fileID: 0}
+  txtCurrentStep: {fileID: 0}
+  txtTotalStep: {fileID: 0}
+  stepIndex: 0
+  totalSteps: 0
+--- !u!114 &4771051698798496409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 258a87ac076348341bb7766476938a56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  countdownMinutes: 0.1
+  countdownSeconds: 0
+  elapsedTime: 0
+  countdownText: {fileID: 0}
+  overtimeText: {fileID: 0}
+--- !u!114 &8029984037634542588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9299bd4f82d1e424db41db6b78723245, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _scenarios: []
+--- !u!114 &4976724151613129672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94203945573188295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e7cc7fd1b10fb4698c22d4d9dcf008, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _scenario:
+    name: 
+    description: 
+    mode: 0
+    level: 0
+    menus: []
+    validator:
+      position: 0
+      rotation: 0
+      order: 0
+    allowedTime: 0
+    drinks: []
+    extras: []
+  txtClientName: {fileID: 0}
+  txtClientPhone: {fileID: 0}
+  txtClientEmail: {fileID: 0}
+  txtDate: {fileID: 0}
+  txtWeek: {fileID: 0}
+  txtPlace: {fileID: 0}
+  txtPersonCount: {fileID: 0}
+  prefabMenuJobSheet: {fileID: 185703554117963216, guid: cfd4115bea11a9f479c6ffe9982b282e,
+    type: 3}
+  menuParent: {fileID: 0}
+  drinksParent: {fileID: 0}
+  textPrefab: {fileID: 5826251127573474439, guid: 4f5021e7fab39454995c0db49cad720c,
+    type: 3}
+  txtExtras: {fileID: 0}

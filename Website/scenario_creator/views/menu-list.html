@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste des Menus</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/menusLoader.js" defer></script>
+</head>
+<body class="bg-custom p-6">
+  <nav class="bg-white p-4 rounded shadow-md mb-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between">
+        <div class="flex space-x-8">
+          <a href="/scenarios" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des scénarios</a>
+          <a href="/menus" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des menus</a>
+        </div>
+        <a href="/help" class="text-xl font-bold text-gray-700 hover:text-blue-500">Aide</a>
+      </div>
+    </div>
+  </nav>
+      
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow-md border-custom">
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold mb-6">Liste des menus</h1>
+      <button 
+        onclick="window.location.href='/views/menu-create.html'" 
+        class="text-white px-4 py-2 rounded shadow">
+        Créer un menu
+      </button>
+    </div>
+    <div id="menus-list" class="space-y-4"></div>
+  </div>
+</body>
+</html>

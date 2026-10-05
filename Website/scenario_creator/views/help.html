@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide d'utilisation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 p-6">
+
+  <nav class="bg-white p-4 rounded shadow-md mb-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between">
+        <div class="flex space-x-8">
+          <a href="/scenarios" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des scénarios</a>
+          <a href="/menus" class="text-xl font-bold text-gray-700 hover:text-blue-500">Liste des menus</a>
+        </div>
+        <a href="/help" class="text-xl font-bold text-gray-700 hover:text-blue-500">Aide</a>
+      </div>
+    </div>
+  </nav>
+  
+
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow-md border-custom">
+    <h1 class="text-4xl font-bold mb-6 text-center">Guide d'utilisation</h1>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Gestion des scénarios</h2>
+      <p>Les scénarios vous permettent de définir des configurations personnalisées avec des menus et des paramètres spécifiques.</p>
+      <ul class="list-disc ml-6">
+        <li><strong>Créer un scénario :</strong> Cliquez sur "Créer un Scénario" et remplissez :
+          <ul class="ml-6 list-decimal">
+            <li>Nom et Description du scénario.</li>
+            <li>Mode : Apprentissage, Entraînement, Examen.</li>
+            <li>
+              Difficulté : Débutant, Intermédiaire, Avancé.
+              <ul><li class="italic">À noter que les niveaux de difficulté sont uniquement utilisés lorsque le mode sélectionné est Entraînement.</li></ul>
+            </li>
+            <li>Temps alloué, allant de 5 à 60 minutes.</li>
+          </ul>
+        </li>
+        <li><strong>Menus dans un scénario :</strong>
+          <ul class="ml-6 list-circle">
+            <li>Vous pouvez ajouter jusqu'à <strong>2 menus maximum</strong>.</li>
+            <li>Il est possible d'ajouter 2 fois le même menu.</li>
+            <li>Utilisez les boutons "Ajouter un menu" pour inclure un menu existant.</li>
+            <li>Sélectionnez parmi la liste des menus existants lequel vous souhaitez ajouter.</li>
+          </ul>
+        </li>
+        <li><strong>Validation :</strong> Activez les options de validation selon vos besoins :
+          <ul class="ml-6 list-circle">
+            <li>Position : Vérifie si les objets sont placés correctement.</li>
+            <li>Rotation : Valide l'orientation des objets.</li>
+            <li>Ordre : Vérifie l'ordre des objets.</li>
+          </ul>
+        </li>
+        <li><strong>Modifier un scénario :</strong> Utilisez le bouton "Modifier" pour ajuster les paramètres existants.</li>
+      </ul>
+      <img src="images/HELP/scenario-update.png" alt="Modificateur de scénario" class="my-4">
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Création et Modification des menus</h2>
+      <p>Les menus sont composés d'une entrée, d'un plat et d'un dessert, et doivent inclure des ustensiles.</p>
+      <ul class="list-disc ml-6">
+        <li><strong>Créer un menu :</strong> Cliquez sur "Créer un Menu" et définissez :
+          <ul class="ml-6 list-decimal">
+            <li>Nom et description du menu.</li>
+            <li>Entrée, Plat principal et Dessert.</li>
+          </ul>
+        </li>
+        <li><strong>Ajout d'ustensiles (Drag & Drop) :</strong>
+          <ul class="ml-6 list-circle">
+            <li>Faites glisser les ustensiles disponibles depuis la liste à gauche.</li>
+            <li>Une fois placés, vous pouvez cliquer sur un ustensile pour ouvrir le panneau de configuration.</li>
+            <li>Options de configuration :
+              <ul class="ml-6 list-decimal">
+                <li><strong>Position X / Y :</strong> Ajuste la position de l'objet.</li>
+                <li><strong>Rotation :</strong> Définit l'orientation de l'ustensile.</li>
+                <li><strong>Ordre de placement :</strong> Gère l'ordre de placement des objets dans le menu.</li>
+              </ul>
+            </li>
+            <li>Une fois placés, vous pouvez maintenir le clique gauche sur un ustensile pour le déplacer.</li>
+            <li>Si vous sélectionnez plusieurs ustensiles à la fois, un bouton "Centrer" apparaîtra afin de vous permettre de centrer la sélection sur la table (Attention, il s'agit du center de la sélection !).</li>
+            <li>Un ustensile ne peut exister <strong>qu'une seul fois</strong> sur la table.</li>
+          </ul>
+        </li>
+        <li><strong>Modifier un menu :</strong> Accédez à l'éditeur pour ajuster les plats ou repositionner les objets.</li>
+      </ul>
+      <img src="images/HELP/menu-update.png" alt="Modificateur de scénario" class="my-4">
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Sauvegarde et Gestion des éléments</h2>
+      <ul class="list-disc ml-6">
+        <li>Utilisez le bouton <strong>"Sauvegarder"</strong> pour enregistrer vos modifications.</li>
+        <li>Vous pouvez supprimer un scénario ou un menu en cliquant sur <strong>"Supprimer"</strong>.</li>
+        <li>Les menus supprimés ne seront plus disponibles dans la liste des menus pour les scénarios.</li>
+      </ul>
+    </section>
+
+    <section class="mt-8 p-4 bg-gray-100 rounded">
+      <h3 class="text-xl font-semibold mb-2">💡 Astuces</h3>
+      <ul class="list-disc ml-6">
+        <li>Si vous devez créer un scénario avec des menus non existants, veuillez d'abord créer vos menus pour pouvoir ensuite les ajouter au scénario.</li>
+        <li>Placez d'abord les objets principaux comme l'assiette (au centre de la table, coordonnées 500 300), puis ajoutez les autres ustensiles.</li>
+        <li>Pour une meilleure précision, utilisez les valeurs X/Y pour positionner les objets.</li>
+        <li>Si vous avez placé des ustensiles sur la table, mais que vous vous êtes trompé, vous pouvez le supprimer depuis la panneau de configuration, mais attention à l'ordre de placement des objets !</li>
+      </ul>
+    </section>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+{
+    "name": "Introduction au Service à Table",
+    "description": "Un scénario pour découvrir les bases du placement des couverts.",
+    "mode": "Learning",
+    "allowedTime": 10,
+    "validator": {
+      "position": true,
+      "rotation": true,
+      "order": true
+    },
+    "menus": [
+      {
+        "name": "Tradition Française",
+        "description": "Un menu typique pour célébrer la gastronomie française.",
+        "appetizer": "Soupe à l'oignon",
+        "mainCourse": "Bœuf bourguignon accompagné de pommes vapeur",
+        "dessert": "Tarte Tatin",
+        "cutleryToPlace": {
+          "Plate": {
+            "tag": "Plate",
+            "parent": "Table",
+            "placementOrderIndex": 0,
+            "offset": {
+              "position": { "x": 0, "y": 0.81, "z": 0 },
+              "rotation": { "x": -0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          },
+          "DinnerFork": {
+            "tag": "DinnerFork",
+            "parent": "Plate",
+            "placementOrderIndex": 1,
+            "offset": {
+              "position": { "x": 0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DinnerKnife": {
+            "tag": "DinnerKnife",
+            "parent": "Plate",
+            "placementOrderIndex": 2,
+            "offset": {
+              "position": { "x": -0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DessertSpoon": {
+            "tag": "DessertSpoon",
+            "parent": "Plate",
+            "placementOrderIndex": 3,
+            "offset": {
+              "position": { "x": 0, "y": 0, "z": -0.16 },
+              "rotation": { "x": 0, "y": 0, "z": 0.7071, "w": 0.7071 }
+            }
+          },
+          "GlassWater": {
+            "tag": "GlassWater",
+            "parent": "Table",
+            "placementOrderIndex": 4,
+            "offset": {
+              "position": { "x": -0.25, "y": 0.81, "z": -0.2 },
+              "rotation": { "x": 0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          }
+        }
+      },
+      {
+        "name": "Saveurs d'Été",
+        "description": "Des plats légers et frais.",
+        "appetizer": "Salade niçoise",
+        "mainCourse": "Filet de poisson grillé avec riz basmati",
+        "dessert": "Sorbet citron",
+        "cutleryToPlace": {
+          "Plate": {
+            "tag": "Plate",
+            "parent": "Table",
+            "placementOrderIndex": 0,
+            "offset": {
+              "position": { "x": 0, "y": 0.81, "z": 0 },
+              "rotation": { "x": -0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          },
+          "FishFork": {
+            "tag": "FishFork",
+            "parent": "Plate",
+            "placementOrderIndex": 1,
+            "offset": {
+              "position": { "x": 0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "FishKnife": {
+            "tag": "FishKnife",
+            "parent": "Plate",
+            "placementOrderIndex": 2,
+            "offset": {
+              "position": { "x": -0.2, "y": 0, "z": 0 },
+              "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+            }
+          },
+          "DessertSpoon": {
+            "tag": "DessertSpoon",
+            "parent": "Plate",
+            "placementOrderIndex": 3,
+            "offset": {
+              "position": { "x": 0, "y": 0, "z": -0.16 },
+              "rotation": { "x": 0, "y": 0, "z": 0.7071, "w": 0.7071 }
+            }
+          },
+          "GlassWine": {
+            "tag": "GlassWine",
+            "parent": "Table",
+            "placementOrderIndex": 4,
+            "offset": {
+              "position": { "x": -0.25, "y": 0.81, "z": -0.2 },
+              "rotation": { "x": 0.7071, "y": 0, "z": 0, "w": 0.7071 }
+            }
+          }
+        }
+      }
+    ],
+    "drinks": [
+      { "type": "Eau minérale", "name": null },
+      { "type": "Vin blanc", "name": "Chardonnay 2020" }
+    ],
+    "extras": [
+      { "name": "Pain", "tag": "Bread" },
+      { "name": "Carafe d'eau", "tag": "WaterJug" }
+    ]
+  }
+  
