@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\_Scripts\GameManager.cs" />
+    <Compile Include="Assets\_Scripts\InterfacePresentationController.cs" />
     <Compile Include="Assets\_Scripts\GrappableCutlery.cs" />
     <Compile Include="Assets\_Scripts\Helper.cs" />
     <Compile Include="Assets\_Scripts\ScenarioEnvironmentFactory.cs" />
@@ -90,11 +91,14 @@
     <Compile Include="Assets\_Scripts\MissionRecap.cs" />
     <Compile Include="Assets\_Scripts\PrefabCutleryManager.cs" />
     <Compile Include="Assets\_Scripts\TrayController.cs" />
+    <Compile Include="Assets\_Scripts\ScenarioSelectionController.cs" />
+    <Compile Include="Assets\_Scripts\MenuController.cs" />
     <Compile Include="Assets\_Scripts\SoundManager.cs" />
     <Compile Include="Assets\_Scripts\SceneController.cs" />
     <Compile Include="Assets\_Scripts\MainMenuUserInterfaceUpdater.cs" />
     <Compile Include="Assets\_Scripts\EndGameReport.cs" />
     <Compile Include="Assets\_Scripts\ScenarioEnvironmentCleanup.cs" />
+    <Compile Include="Assets\_Scripts\PauseMenuController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

@@ -44,7 +44,6 @@ public class GameManager : MonoBehaviour
     private GameObject _btnScenarioSelector;
     [SerializeField]
     private GameObject _pauseMenu;
-    private static GameObject _pauseMenuRef;
     [SerializeField]
     private GameObject _tipsMainMenu;
     [SerializeField]
@@ -53,15 +52,12 @@ public class GameManager : MonoBehaviour
     private GameObject _tipsExamMode;
     [SerializeField]
     private GameObject _btnValidateCurrentMenu;
-    private static GameObject _btnValidateCurrentMenuRef;
     [SerializeField]
     private GameObject _jobSheet;
 
     // Scenario Elements
     [SerializeField] private PrefabCutleryManager prefabManager;
-    private List<Scenario> _scenarios;
     private static Scenario _selectedScenario;
-    private int _scenarioIndex = 0;
     private readonly ScenarioActionLog _actionLog = new ScenarioActionLog();
     private readonly ScenarioPlacementLocks _placementLocks = new ScenarioPlacementLocks();
     private static List<Dictionary<string, GameObject>> _lstInstantiatedPrefabs;
@@ -178,8 +174,11 @@ public class GameManager : MonoBehaviour
     // Others
     private static int _drdMode;
     private static int _drdLevel;
-    private Button _activeButton;
-    private JSONLoader _jsonLoader;
+    private ScenarioSelectionController _scenarioSelection;
+    private MenuController _menus;
+    private PauseMenuController _pauseController;
+    private InterfacePresentationController _presentation;
+    private Coroutine _scenarioReload;
 
     [SerializeField] private Notification notification;
 
@@ -237,8 +236,7 @@ public class GameManager : MonoBehaviour
 
         _trayController?.UpdatePose();
 
-        PlaceElementInFrontOfPlayer();
-        RotateElementToPlayer();
+        _presentation.UpdatePose(Camera.main, notification.GetNotificationObject());
 
         UpdateScenarioTimer();
     }
@@ -278,7 +276,6 @@ public class GameManager : MonoBehaviour
         _chairsTransform = new List<Transform>();
         _placementLocks.Reset();
         _menuReports = new List<GameObject>();
-        _scenarios = new List<Scenario>();
         _instantiatedPrefabs = new Dictionary<string, GameObject>();
         _actionLog.Reset();
     }
@@ -289,12 +286,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void InitializeReferences()
     {
-        _btnValidateCurrentMenuRef = _btnValidateCurrentMenu;
         _tablePlacementRef = _tablePlacement;
         _celebrationEndGameTipRef = _celebrationEndGameTip;
         _celebrationEndGameRef = _celebrationEndGame;
         _timerRef = _timer;
-        _pauseMenuRef = _pauseMenu;
         _folderPaperRef = _folderPaper;
         _defaultCutleryMaterialRef = _defaultCutleryMaterial;
         _defaultPlateMaterialRef = _defaultPlateMaterial;
@@ -305,13 +300,20 @@ public class GameManager : MonoBehaviour
         _uiMainMenuUpdater = GetComponent<MainMenuUserInterfaceUpdater>();
         _uiJobSheetUpdater = GetComponent<JobSheetUserInterfaceUpdater>();
         _stepHelperRef = _stepHelper;
-        _jsonLoader = GetComponent<JSONLoader>();
+        _scenarioSelection = new ScenarioSelectionController(GetComponent<JSONLoader>(),
+            _btnScenarioSelector, _mainMenuScenarioPickerUI, _uiMainMenuUpdater, _uiJobSheetUpdater,
+            scenario => _selectedScenario = scenario);
+        _menus = new MenuController(_mainMenuSelectionUI, _mainMenuScenarioPickerUI,
+            _tipsMainMenu, _tipsLearningMode, _tipsExamMode, _scenarioSelection);
     }
 
     /// <summary>Initializes the hand coordinator from the existing Inspector references.</summary>
     private void InitializeInteractors()
     {
         _hands = new HandInteractionController(_interactorsL, _interactorsR, _leftHand);
+        _pauseController = new PauseMenuController(_pauseMenu, _btnValidateCurrentMenu, _hands);
+        _presentation = new InterfacePresentationController(_menus, _pauseMenu, _stepHelper,
+            _timer, _celebrationEndGame, _celebrationEndGameTip);
     }
 
     /// <summary>
@@ -368,14 +370,12 @@ public class GameManager : MonoBehaviour
     {
         print("Entering Main Menu");
         ShowMainMenu();
-        LoadScenarios();
-        CreateButtonList();
+        _scenarioSelection.Initialize();
 
-        _pauseMenuRef.SetActive(false);
-        _celebrationEndGameRef.SetActive(false);
-        _celebrationEndGameTipRef.SetActive(false);
-        _tipsLearningMode.SetActive(false);
-        _tipsExamMode.SetActive(false);
+        _pauseController.Hide();
+        _presentation.ShowCelebration(false);
+        _presentation.ShowCelebrationTip(false);
+        _menus.HideScenarioTips();
     }
 
     /// <summary>
@@ -421,7 +421,7 @@ public class GameManager : MonoBehaviour
     {
         if (ScenarioTimingPolicy.UsesCountdown(_selectedScenario))
         {
-            _timerRef.SetActive(true);
+            _presentation.ShowTimer(true);
             _countdownTimer = GetComponent<CountdownTimer>();
             _countdownTimer.SetDurationMinutes(_selectedScenario.allowedTime);
             _countdownTimer.SetCountdown();
@@ -485,7 +485,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void HandleLearningOrBegginnerMode()
     {
-        _celebrationEndGameTipRef.SetActive(true);
+        _presentation.ShowCelebrationTip(true);
     }
 
     /// <summary>
@@ -504,184 +504,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Positions all floating UI elements in front of the player camera at predefined distances and heights.
-    /// </summary>
-    private void PlaceElementInFrontOfPlayer()
-    {
-        Camera mainCamera = Camera.main;
-        float uiDistance = 0.55f;
-
-        Helper.PlaceUIElement(_mainMenuSelectionUI, mainCamera, uiDistance, 1.5f);
-        Helper.PlaceUIElement(_mainMenuScenarioPickerUI, mainCamera, uiDistance, 1.515f);
-        Helper.PlaceUIElement(_pauseMenuRef, mainCamera, uiDistance, 1.5f);
-        Helper.PlaceUIElement(_tipsMainMenu, mainCamera, uiDistance, 1.5f);
-        Helper.PlaceUIElement(_tipsLearningMode, mainCamera, uiDistance, 1.5f);
-        Helper.PlaceUIElement(_tipsExamMode, mainCamera, uiDistance, 1.5f);
-
-        var notificationObject = notification.GetNotificationObject();
-        Helper.PlaceUIElement(notificationObject, mainCamera, 2.5f, 1.8f);
-    }
-
-    /// <summary>
-    /// Rotates all floating UI elements to face the player camera using billboard behavior.
-    /// </summary>
-    private void RotateElementToPlayer()
-    {
-        Helper.RotateUIElement(_mainMenuSelectionUI, true);
-        Helper.RotateUIElement(_mainMenuScenarioPickerUI, true);
-        Helper.RotateUIElement(_tipsMainMenu, true);
-        Helper.RotateUIElement(_tipsLearningMode, true);
-        Helper.RotateUIElement(_tipsExamMode, true);
-        Helper.RotateUIElement(_stepHelperRef, true);
-        Helper.RotateUIElement(notification.GetNotificationObject(), true);
-        Helper.RotateUIElement(_timerRef, true, true);
-        Helper.RotateUIElement(_pauseMenuRef, true, false, "Pause");
-        Helper.RotateUIElement(_celebrationEndGameRef, true);
-        Helper.RotateUIElement(_celebrationEndGameTipRef, true);
-    }
-
-    /// <summary>
-    /// Highlights a button as the currently active selection and resets the previous one to default color.
-    /// </summary>
-    /// <param name="newButton">The button to set as the active selection.</param>
-    private void SetActiveButton(Button newButton)
-    {
-        if (_activeButton != null)
-        {
-            var oldColors = _activeButton.colors;
-            oldColors.normalColor = Color.white;
-            _activeButton.colors = oldColors;
-        }
-
-        var newColors = newButton.colors;
-        newColors.normalColor = newColors.pressedColor;
-        newButton.colors = newColors;
-
-        _activeButton = newButton;
-    }
-
-    /// <summary>
-    /// Adds click listeners to a scenario selector button for selection and sound feedback.
-    /// </summary>
-    /// <param name="button">The button GameObject to configure.</param>
-    /// <param name="index">The scenario index to select when the button is clicked.</param>
-    private void AddButtonListeners(GameObject button, int index)
-    {
-        var buttonComponent = button.GetComponent<Button>();
-        buttonComponent.onClick.AddListener(() =>
-        {
-            SetActiveButton(buttonComponent);
-            SelectScenario(index);
-        });
-        buttonComponent.onClick.AddListener(() => SoundManager.Instance.PlayTouchscreenSound());
-    }
-
-    /// <summary>
-    /// Creates the scrollable list of scenario selector buttons inside the scenario picker UI.
-    /// </summary>
-    private void CreateButtonList()
-    {
-        Transform contentTransform = _mainMenuScenarioPickerUI.transform.Find("Scroll View/Viewport/Content");
-
-        for (int i = 0; i < _scenarios.Count; i++)
-        {
-            CreateScenarioButton(i, contentTransform);
-        }
-    }
-
-    /// <summary>
-    /// Instantiates and configures a single scenario selector button with text, sizing and listeners.
-    /// </summary>
-    /// <param name="index">The scenario index for this button.</param>
-    /// <param name="parentTransform">The scroll content parent to attach the button to.</param>
-    private void CreateScenarioButton(int index, Transform parentTransform)
-    {
-        var pButton = Instantiate(_btnScenarioSelector);
-        pButton.transform.SetParent(parentTransform, false);
-
-        SetButtonProperties(pButton);
-
-        AddButtonListeners(pButton, index);
-        pButton.GetComponentInChildren<TextMeshProUGUI>().text = "Scénario " + (index + 1);
-
-        var buttonComponent = pButton.GetComponent<Button>();
-
-        if (index == 1)
-        {
-            SetActiveButton(buttonComponent);
-        }
-    }
-
-    /// <summary>
-    /// Configures the RectTransform size of a scenario selector button.
-    /// </summary>
-    /// <param name="button">The button GameObject to resize.</param>
-    private void SetButtonProperties(GameObject button)
-    {
-        var rectTransform = button.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(200, 40.734f);
-    }
-
-    /// <summary>
-    /// Handles toggling between local and remote scenario data sources.
-    /// Clears existing scenarios and buttons, then reloads from the selected source.
-    /// </summary>
-    /// <param name="useRemoteScenarios">True to fetch from the remote server, false to load locally.</param>
+    /// <summary>Reloads the scenario picker from the selected local or remote source.</summary>
     public void HandleUseLocalOrRemoteScenarios(bool useRemoteScenarios)
     {
-        print($"HandleUseLocalOrRemoteScenarios {useRemoteScenarios}");
-        _scenarios.Clear();
-        GameObject[] buttons = GameObject.FindGameObjectsWithTag("ScenarioButtonSelector");
-        print("Buttons found");
-        foreach (GameObject button in buttons)
-        {
-            Destroy(button);
-        }
-
-        if (useRemoteScenarios)
-        {
-            print("Use server");
-            
-            StartCoroutine(HandleRemoteScenarios());
-        }
-        else
-        {
-            print("Use local");
-            HandleLocalScenarios();
-        }
-    }
-
-    /// <summary>
-    /// Loads scenarios from local resources, rebuilds the button list and selects the first scenario.
-    /// </summary>
-    private void HandleLocalScenarios()
-    {
-        _jsonLoader.LoadScenariosLocal();
-        _scenarios = _jsonLoader.GetLoadedScenarios();
-        CreateButtonList();
-        if (_scenarios.Count > 0)
-        {
-            SelectScenario(1);
-        }
-    }
-
-    /// <summary>
-    /// Coroutine that fetches scenarios from the remote server, rebuilds the button list
-    /// and selects the first available scenario.
-    /// </summary>
-    /// <returns>An IEnumerator for coroutine execution.</returns>
-    private IEnumerator HandleRemoteScenarios()
-    {
-        print("HandleRemoteScenarios");
-        
-        yield return StartCoroutine(_jsonLoader.LoadScenarioServer());
-        _scenarios = _jsonLoader.GetLoadedScenarios();
-        CreateButtonList();
-        if (_scenarios.Count > 0)
-        {
-            SelectScenario(0);
-        }
+        if (_scenarioReload != null)
+            StopCoroutine(_scenarioReload);
+        _scenarioReload = StartCoroutine(_scenarioSelection.Reload(useRemoteScenarios));
     }
 
     /// <summary>
@@ -690,7 +518,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to show the step helper, false to hide it.</param>
     private void ToggleStepHelper(bool active)
     {
-        _stepHelperRef.SetActive(active);
+        _presentation.ShowSteps(active);
     }
 
     /// <summary>
@@ -886,7 +714,7 @@ public class GameManager : MonoBehaviour
             _countdownTimer.StopCountdown();
         }
 
-        _timerRef.SetActive(false);
+        _presentation.ShowTimer(false);
         NextState(GameState.ScenarioEnded);
     }
 
@@ -1047,21 +875,11 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Loads the scenario list from the JSON loader into the local scenarios collection.
-    /// </summary>
-    private void LoadScenarios()
-    {
-        _scenarios = _jsonLoader.GetLoadedScenarios();
-    }
-
-    /// <summary>
     /// Activates the main menu selection panel and hides other panels.
     /// </summary>
     public void ShowMainMenu()
     {
-        _mainMenuSelectionUI.SetActive(true);
-        _mainMenuScenarioPickerUI.SetActive(false);
-        _tipsMainMenu.SetActive(false);
+        _menus.ShowMain();
     }
 
     /// <summary>
@@ -1069,9 +887,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ShowScenarioPicker()
     {
-        _mainMenuSelectionUI.SetActive(false);
-        _mainMenuScenarioPickerUI.SetActive(true);
-        SelectScenario(1); // by default, load the first scenario
+        _menus.ShowScenarioPicker();
     }
 
     /// <summary>
@@ -1079,9 +895,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ShowTips()
     {
-        _mainMenuSelectionUI.SetActive(false);
-        _mainMenuScenarioPickerUI.SetActive(false);
-        _tipsMainMenu.SetActive(true);
+        _menus.ShowTips();
     }
 
     /// <summary>
@@ -1089,9 +903,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void HideMenu()
     {
-        _mainMenuSelectionUI.SetActive(false);
-        _mainMenuScenarioPickerUI.SetActive(false);
-        _tipsMainMenu.SetActive(false);
+        _menus.Hide();
     }
 
     /// <summary>
@@ -1200,18 +1012,8 @@ public class GameManager : MonoBehaviour
     /// <param name="mode">The scenario mode to handle.</param>
     private void HandleScenarioMode(Scenario.Mode mode)
     {
-        switch (mode)
-        {
-            case Scenario.Mode.Learning:
-                _tipsLearningMode.SetActive(true);
-                break;
-            case Scenario.Mode.Exam:
-                _tipsExamMode.SetActive(true);
-                break;
-            default:
-                NextState(GameState.TablePlacement);
-                break;
-        }
+        if (!_menus.ShowScenarioTips(mode))
+            NextState(GameState.TablePlacement);
     }
 
     /// <summary>
@@ -1238,8 +1040,7 @@ public class GameManager : MonoBehaviour
     public void TipsRead()
     {
         _tipsRead = true;
-        _tipsLearningMode.SetActive(false);
-        _tipsExamMode.SetActive(false);
+        _menus.HideScenarioTips();
         NextState(GameState.TablePlacement);
     }
 
@@ -1574,25 +1375,7 @@ public class GameManager : MonoBehaviour
     /// <param name="scenarioIndex">The index of the scenario to select from the loaded list.</param>
     public void SelectScenario(int scenarioIndex)
     {
-        print("Selecting a scenario - " + scenarioIndex);
-
-        if (_uiMainMenuUpdater == null)
-        {
-            print("Could not find the UserInterfaceUpdater component");
-            return;
-        }
-
-        _selectedScenario = _scenarios[scenarioIndex];
-        _uiMainMenuUpdater.Scenario = _scenarios[scenarioIndex];
-        _uiJobSheetUpdater.Scenario = _scenarios[scenarioIndex];
-
-        if (_uiMainMenuUpdater.Scenario.mode != Scenario.Mode.Training)
-            _uiMainMenuUpdater.HideUILevel();
-        else
-            _uiMainMenuUpdater.ShowUILevel();
-
-        _uiMainMenuUpdater.UpdateUI();
-        _scenarioIndex = scenarioIndex;
+        _scenarioSelection.Select(scenarioIndex);
     }
 
     /// <summary>
@@ -1930,7 +1713,7 @@ public class GameManager : MonoBehaviour
         if (allMenusAreCorrectlyPlaced)
         {
             SoundManager.Instance.PlaySuccessSound();
-            _celebrationEndGameRef.SetActive(true);
+            _presentation.ShowCelebration(true);
         } else
         {
             SoundManager.Instance.PlayFailureSound();
@@ -2283,8 +2066,8 @@ public class GameManager : MonoBehaviour
     {
         gameEnded = false;
         _hands.SetLeftHandVisible(true);
-        _celebrationEndGameRef.SetActive(false);
-        _celebrationEndGameTipRef.SetActive(false);
+        _presentation.ShowCelebration(false);
+        _presentation.ShowCelebrationTip(false);
         _progress.ResetMenus();
         _actionLog.Reset();
         _placementLocks.Reset();
@@ -2376,144 +2159,29 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggles the pause menu: updates the validate button visibility
-    /// and opens or closes the pause panel based on its current state.
-    /// </summary>
+    /// <summary>Toggles the pause menu only while playing or showing the scenario results.</summary>
     public void TogglePauseMenu()
     {
-        var endGameReports = GameObject.FindGameObjectsWithTag("EndGameReport");
-        UpdateValidateMenuButton(endGameReports.Length);
-        HandlePauseMenuToggle();
-    }
-
-    /// <summary>
-    /// Shows or hides the validate current menu button based on mode and existing reports.
-    /// Only visible in Exam mode when no end-game reports exist yet.
-    /// </summary>
-    /// <param name="endGameReportCount">The number of existing end-game report objects in the scene.</param>
-    private void UpdateValidateMenuButton(int endGameReportCount)
-    {
-        if (_selectedScenario.mode == Scenario.Mode.Exam && endGameReportCount == 0)
-        {
-            _btnValidateCurrentMenuRef.SetActive(true);
-        }
+        _pauseController.UpdateValidateButton(_selectedScenario.mode,
+            GameObject.FindGameObjectsWithTag("EndGameReport").Length);
+        if (_gameStateRef != GameState.PlayScenario && _gameStateRef != GameState.ScenarioEnded)
+            return;
+        if (_pauseController.IsOpen)
+            ClosePauseMenu();
         else
-        {
-            _btnValidateCurrentMenuRef.SetActive(false);
-        }
+            OpenPauseMenu();
     }
 
-    /// <summary>
-    /// Opens or closes the pause menu based on its current active state,
-    /// but only during PlayScenario or ScenarioEnded states.
-    /// </summary>
-    private void HandlePauseMenuToggle()
-    {
-        if (_gameStateRef == GameState.PlayScenario || _gameStateRef == GameState.ScenarioEnded)
-        {
-            if (!_pauseMenuRef.activeSelf)
-            {
-                OpenPauseMenu();
-            }
-            else
-            {
-                ClosePauseMenu();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Opens the pause menu: activates the panel, enables all interactors
-    /// and pauses the countdown/overtime timers.
-    /// </summary>
+    /// <summary>Opens pause, enables menu interactions and suspends the timer.</summary>
     public void OpenPauseMenu()
     {
-        ActivatePauseMenu();
-        EnableInteractors();
-        HandleCountdownTimer();
+        _pauseController.Open(_countdownTimer);
     }
 
-    /// <summary>
-    /// Activates the pause menu panel.
-    /// </summary>
-    private void ActivatePauseMenu()
-    {
-        _pauseMenuRef.SetActive(true);
-    }
-
-    /// <summary>
-    /// Enables both left and right interactors while keeping direct interactors always active.
-    /// </summary>
-    private void EnableInteractors()
-    {
-        ToggleInteractorsLeftWithDirectEnable(true);
-        ToggleInteractorsRightWithDirectEnable(true);
-    }
-
-    /// <summary>
-    /// Pauses the countdown and overtime timers when the pause menu is opened.
-    /// </summary>
-    private void HandleCountdownTimer()
-    {
-        if (_countdownTimer == null) return;
-
-        if (!_countdownTimer.GetIsCountingDownOver() && _countdownTimer.GetIsCountingDown())
-        {
-            _countdownTimer.StopCountdown();
-        }
-
-        if (_countdownTimer.GetIsTimerEnabled())
-        {
-            _countdownTimer.StopTimer();
-        }
-    }
-
-    /// <summary>
-    /// Closes the pause menu: deactivates the panel, disables interactors
-    /// and resumes the countdown/overtime timers.
-    /// </summary>
+    /// <summary>Closes pause and resumes the timer only if the scenario is still running.</summary>
     public void ClosePauseMenu()
     {
-        DeactivatePauseMenu();
-        DisableInteractors();
-        HandleCountdownTimerOnClose();
-    }
-
-    /// <summary>
-    /// Deactivates the pause menu panel.
-    /// </summary>
-    private void DeactivatePauseMenu()
-    {
-        _pauseMenuRef.SetActive(false);
-    }
-
-    /// <summary>
-    /// Disables both left and right interactors while keeping direct interactors always active.
-    /// </summary>
-    private void DisableInteractors()
-    {
-        ToggleInteractorsLeftWithDirectEnable(false);
-        ToggleInteractorsRightWithDirectEnable(false);
-    }
-
-    /// <summary>
-    /// Resumes the countdown or overtime timer when the pause menu is closed,
-    /// unless the game has already ended or the scenario is over.
-    /// </summary>
-    private void HandleCountdownTimerOnClose()
-    {
-        if (_countdownTimer == null || gameEnded || _gameStateRef == GameState.ScenarioEnded) return;
-
-        if (!_countdownTimer.GetIsCountingDownOver() && !_countdownTimer.GetIsCountingDown())
-        {
-            _countdownTimer.StartCountdown();
-        }
-
-        if (_countdownTimer.GetIsCountingDownOver() && !_countdownTimer.GetIsTimerEnabled())
-        {
-            _countdownTimer.StartTimer();
-        }
+        _pauseController.Close(_countdownTimer, !gameEnded && _gameStateRef != GameState.ScenarioEnded);
     }
 
 }
