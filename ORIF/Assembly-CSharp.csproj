@@ -67,6 +67,7 @@
     <Compile Include="Assets\_Scripts\InterfacePresentationController.cs" />
     <Compile Include="Assets\_Scripts\GrappableCutlery.cs" />
     <Compile Include="Assets\_Scripts\Helper.cs" />
+    <Compile Include="Assets\_Scripts\CutleryPlacementController.cs" />
     <Compile Include="Assets\_Scripts\ScenarioEnvironmentFactory.cs" />
     <Compile Include="Assets\_Scripts\ScenarioTimingPolicy.cs" />
     <Compile Include="Assets\_Scripts\CutleryInteractionBinding.cs" />

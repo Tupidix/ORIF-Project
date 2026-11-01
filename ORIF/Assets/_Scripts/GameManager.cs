@@ -176,6 +176,7 @@ public class GameManager : MonoBehaviour
     private static int _drdLevel;
     private ScenarioSelectionController _scenarioSelection;
     private MenuController _menus;
+    private CutleryPlacementController _cutleryController;
     private PauseMenuController _pauseController;
     private InterfacePresentationController _presentation;
     private Coroutine _scenarioReload;
@@ -305,6 +306,8 @@ public class GameManager : MonoBehaviour
             scenario => _selectedScenario = scenario);
         _menus = new MenuController(_mainMenuSelectionUI, _mainMenuScenarioPickerUI,
             _tipsMainMenu, _tipsLearningMode, _tipsExamMode, _scenarioSelection);
+        _cutleryController = new CutleryPlacementController(_progress, _actionLog, _placementLocks,
+            _defaultCutleryMaterial, _defaultGlassMaterial, PrepareExamRelease, UpdateReport, UpdateStep, CheckEndScenario);
     }
 
     /// <summary>Initializes the hand coordinator from the existing Inspector references.</summary>
@@ -1385,17 +1388,16 @@ public class GameManager : MonoBehaviour
     /// <param name="tag">The tag of the grabbed cutlery object.</param>
     public void HandleGrapEvent(string tag)
     {
-        SoundManager.Instance.PlayGrapSound();
-        print($"[{tag}] - Current step {_progress.StepIndex} | Grapped element index {_selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex}");
+        _cutleryController.HandleGrab(tag, _selectedScenario);
+    }
 
-        if (_selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex != _progress.StepIndex)
-        {
-            print("This isn't the cultery to place..!");
-        }
-        else
-        {
-            print("This is the cultery to place !");
-        }
+    /// <summary>Coordinates the first exam placement with the scene layout.</summary>
+    private void PrepareExamRelease(GameObject item)
+    {
+        CheckForPlacementArea(item);
+        if (_isFirstCutleryPlacedInZoneB && !_isFirstCutleryZonePlacementChecked)
+            SwapMenus();
+        _isFirstCutleryZonePlacementChecked = true;
     }
 
     /// <summary>
@@ -1481,19 +1483,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Les positions et rotations des menus ont été échangées.");
     }
 
-    /// <summary>
-    /// Returns whether the given tag corresponds to an extra item defined in the scenario.
-    /// </summary>
-    /// <param name="tag">The tag to check against scenario extras.</param>
-    /// <returns>True if the tag matches any extra in the scenario.</returns>
-    private bool IsExtra(string tag)
-    {
-        foreach (var extra in _selectedScenario.extras)
-        {
-            if (extra.tag == tag) return true;
-        }
-        return false;
-    }
+
 
     /// <summary>
     /// Handles a release event for a cutlery item: validates placement zone (Exam mode),
@@ -1503,97 +1493,14 @@ public class GameManager : MonoBehaviour
     /// <param name="tag">The tag of the released cutlery object.</param>
     public void HandleReleaseEvent(string tag)
     {
-        print("Released");
-
-        if (_areCutleriesAllPlaced) {
-            CheckEndScenario();
-            return;
-        }
-
-        SoundManager.Instance.PlayReleaseSound(tag);
-        var objects = GameObject.FindGameObjectsWithTag(tag);
-
-        if (objects.Length == 0)
-        {
-            print($"There isn't any {tag}");
-            return;
-        }
-
-        if (_selectedScenario.mode == Scenario.Mode.Exam)
-        {
-            CheckForPlacementArea(objects[0]);
-            if (_isFirstCutleryPlacedInZoneB && _isFirstCutleryZonePlacementChecked == false)
-            {
-                //ReverseMenusOrder();
-                SwapMenus();
-            }
-            _isFirstCutleryZonePlacementChecked = true;
-        }
-
-        if (!IsCutleryInMenu(tag))
-        {
-            if (!IsExtra(tag)) { 
-                AddActionForMissingCutlery(tag, objects[0]);
-                return;
-            }
-        }
-
-        var pCutlery = _lstInstantiatedPrefabs[_progress.MenuIndex][tag];
-        if (pCutlery == null)
-        {
-            print($"pCutlery is null. Menu INDEX [{_progress.MenuIndex}] TAG [{tag}]");
-            return;
-        }
-
-        var index = Helper.GetIndexOfObject(objects, pCutlery);
-
-        if (tag == "Plate")
-        {
-            Helper.ShiftObjectsPositionBasedOnPlate(objects, _progress.MenuIndex, _lstInstantiatedPrefabs);
-        }
-
-        if (IsValid(objects, _selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex, _progress.StepIndex))
-        {
-            HandleValidCutlery(objects, index);
-        }
+        _cutleryController.HandleRelease(tag, _selectedScenario, _lstInstantiatedPrefabs, _areCutleriesAllPlaced);
     }
 
-    /// <summary>
-    /// Returns whether the given cutlery tag exists in the current menu's instantiated prefabs.
-    /// </summary>
-    /// <param name="tag">The cutlery tag to look up.</param>
-    /// <returns>True if the tag is present in the current menu.</returns>
-    private bool IsCutleryInMenu(string tag)
-    {
-        return _lstInstantiatedPrefabs[_progress.MenuIndex].ContainsKey(tag);
-    }
 
-    /// <summary>
-    /// Records a failed action for a cutlery that does not belong to the current menu.
-    /// </summary>
-    /// <param name="tag">The tag of the misplaced cutlery.</param>
-    /// <param name="obj">The misplaced GameObject for position/rotation recording.</param>
-    private void AddActionForMissingCutlery(string tag, GameObject obj)
-    {
-        _actionLog.RecordUnexpectedItem(_progress.MenuIndex, obj.tag, obj.transform.position, obj.transform.rotation);
-        print($"Added action to the menu but the cultery {tag} is not in the menu.");
-    }
 
-    /// <summary>
-    /// Handles a valid cutlery placement: plays the locked sound (non-Exam),
-    /// destroys the placement guide and advances to the next step.
-    /// </summary>
-    /// <param name="objects">The array of objects sharing the cutlery tag.</param>
-    /// <param name="index">The index of the placement guide to destroy.</param>
-    private void HandleValidCutlery(GameObject[] objects, int index)
-    {
-        if (_selectedScenario.mode != Scenario.Mode.Exam)
-            SoundManager.Instance.PlayLockedSound();
 
-        print("Destroying.");
-        Destroy(objects[index]);
-        UpdateStep();
-    }
+
+
 
     private void OnEnable()
     {
@@ -1778,110 +1685,17 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Validates a cutlery placement against distance, rotation and order criteria.
-    /// Records the action, locks the cutlery if all criteria pass and updates the report.
-    /// </summary>
-    /// <param name="objects">The array of objects sharing this tag (placed item + placement guide).</param>
-    /// <param name="pickedUpOrderIndex">The placement order index of the picked-up item.</param>
-    /// <param name="currentOrderIndex">The expected current step order index.</param>
-    /// <returns>True if distance, rotation and order are all valid.</returns>
-    private bool IsValid(GameObject[] objects, int pickedUpOrderIndex, int currentOrderIndex)
-    {
-        print("Checking validity");
 
-        if (!AreObjectsCountValid(objects.Length))
-        {
-            return false;
-        }
 
-        var (distance, rotation) = CalculateDistanceAndRotation(objects);
-        var result = CutleryPlacementValidator.Validate(_selectedScenario, objects[0].tag,
-            distance, rotation, pickedUpOrderIndex, currentOrderIndex);
 
-        Helper.LogValidationResults(distance, rotation, currentOrderIndex, pickedUpOrderIndex);
 
-        AddScenarioAction(result.PositionCorrect, result.RotationCorrect, result.OrderCorrect, objects, pickedUpOrderIndex);
 
-        if (IsCutleryPlacementCorrect(result.OrderCorrect, result.PositionCorrect, result.RotationCorrect, objects))
-        {
-            LockCutlery(objects);
-        }
 
-        if (_selectedScenario.mode != Scenario.Mode.Exam)
-        {
-            UpdateReport(_progress.MenuIndex);
-        }
 
-        return result.IsCorrect;
-    }
 
-    /// <summary>
-    /// Validates that the number of objects with this tag does not exceed the expected maximum
-    /// (number of menus + 1 for the trolly copy).
-    /// </summary>
-    /// <param name="objectsCount">The number of objects found with the tag.</param>
-    /// <returns>True if the count is within the acceptable range.</returns>
-    private bool AreObjectsCountValid(int objectsCount)
-    {
-        if (objectsCount > _selectedScenario.menus.Length + 1) // + 1 because of the trolly culteries
-        {
-            print("Objects length are greater than " + (_selectedScenario.menus.Length + 1) + "!");
-            return false;
-        }
-        return true;
-    }
 
-    /// <summary>
-    /// Calculates the world-space distance and rotation difference between the first two tagged objects.
-    /// </summary>
-    /// <param name="objects">The array of tagged objects (expects at least 2).</param>
-    /// <returns>A tuple of (distance in units, rotation difference in degrees).</returns>
-    private (float distance, float rotation) CalculateDistanceAndRotation(GameObject[] objects)
-    {
-        var distance = Vector3.Distance(objects[0].transform.position, objects[1].transform.position);
-        var rotation = Helper.GetRotationDifference(objects[0].transform.rotation, objects[1].transform.rotation);
-        return (distance, rotation);
-    }
 
-    /// <summary>
-    /// Records a new scenario action with the validation results for the current placement.
-    /// </summary>
-    /// <param name="correctDistance">Whether the distance criterion passed.</param>
-    /// <param name="correctRotation">Whether the rotation criterion passed.</param>
-    /// <param name="correctOrder">Whether the order criterion passed.</param>
-    /// <param name="objects">The tagged objects (index 0 = placed, index 1 = guide to reset).</param>
-    /// <param name="pickedUpOrderIndex">The placement order index of the item.</param>
-    private void AddScenarioAction(bool correctDistance, bool correctRotation, bool correctOrder, GameObject[] objects, int pickedUpOrderIndex)
-    {
-        _actionLog.RecordPlacement(_progress.MenuIndex, correctDistance, correctRotation, correctOrder, objects[0].tag, objects[1].transform.position, objects[1].transform.rotation, pickedUpOrderIndex);
-        print("Action added");
-    }
 
-    /// <summary>
-    /// Returns whether a cutlery placement passes all criteria and is not already locked.
-    /// </summary>
-    /// <param name="correctOrder">Whether the order criterion passed.</param>
-    /// <param name="correctDistance">Whether the distance criterion passed.</param>
-    /// <param name="correctRotation">Whether the rotation criterion passed.</param>
-    /// <param name="objects">The tagged objects (index 0 used for lock check).</param>
-    /// <returns>True if all criteria pass and the item is not already locked.</returns>
-    private bool IsCutleryPlacementCorrect(bool correctOrder, bool correctDistance, bool correctRotation, GameObject[] objects)
-    {
-        return !_placementLocks.IsLocked(_progress.MenuIndex, objects[0].tag) && (correctOrder && correctDistance && correctRotation);
-    }
-
-    /// <summary>
-    /// Locks a cutlery in place: marks it as locked, restores the default material on the placement guide,
-    /// and sets a high mass to prevent further movement.
-    /// </summary>
-    /// <param name="objects">The tagged objects (index 0 = placed item, alternating index = guide to reset).</param>
-    private void LockCutlery(GameObject[] objects)
-    {
-        _placementLocks.LockCorrect(_progress.MenuIndex, objects[0].tag);
-        ScenarioInteractionController.ApplyPlacementLock(objects, _progress.MenuIndex,
-            _defaultCutleryMaterialRef, _defaultGlassMaterialRef);
-    }
 
     /// <summary>
     /// Updates the mission recap report for a specific menu with the latest action results.
