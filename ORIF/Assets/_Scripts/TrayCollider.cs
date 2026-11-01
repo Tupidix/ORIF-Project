@@ -8,7 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 /// </summary>
 public class TrayCollider : MonoBehaviour
 {
-    public List<Transform> slots;
+    [SerializeField] private List<Transform> slots;
 
     private HashSet<int> _occupiedSlots;
     private List<GameObject> _trackedObjects;

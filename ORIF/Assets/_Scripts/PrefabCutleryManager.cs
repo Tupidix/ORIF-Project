@@ -6,7 +6,9 @@ using UnityEngine;
 /// </summary>
 public class PrefabCutleryManager : MonoBehaviour
 {
-    public List<PrefabEntry> prefabEntries;
+    [SerializeField] private List<PrefabEntry> prefabEntries;
+
+    public IReadOnlyList<PrefabEntry> PrefabEntries => prefabEntries.AsReadOnly();
 
     private Dictionary<string, GameObject> _prefabDictionary;
 

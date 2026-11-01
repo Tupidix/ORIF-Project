@@ -13,7 +13,7 @@ public class Notification : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI _description;
 
-    public SoundManager soundManager;
+    [SerializeField] private SoundManager soundManager;
 
     private void Start()
     {

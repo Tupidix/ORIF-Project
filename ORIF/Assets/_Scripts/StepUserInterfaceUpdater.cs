@@ -25,8 +25,11 @@ public class StepUserInterfaceUpdater : MonoBehaviour
     [SerializeField] private TextMeshProUGUI txtCurrentStep;
     [SerializeField] private TextMeshProUGUI txtTotalStep;
 
-    public int stepIndex = 0;
-    public int totalSteps = 0;
+    [SerializeField] private int stepIndex = 0;
+    [SerializeField] private int totalSteps = 0;
+
+    public int TotalSteps => totalSteps;
+    public void SetStepIndex(int index) => stepIndex = index;
 
     private List<Step> _steps;
     private string _currentMenuName;
@@ -38,6 +41,7 @@ public class StepUserInterfaceUpdater : MonoBehaviour
     /// <param name="menuIndex">The index of the menu to generate steps for.</param>
     public void GenerateSteps(Scenario scenario, int menuIndex)
     {
+        totalSteps = scenario.menus[menuIndex].cutleryToPlace.Count;
         _steps = new List<Step>();
         _currentMenuName = scenario.menus[menuIndex].name;
 
@@ -70,7 +74,7 @@ public class StepUserInterfaceUpdater : MonoBehaviour
     {
         string positionText = GetPositionText(cutlery, menuIndex);
         string parentName = Helper.ConvertTagToFrenchName(cutlery.Value.parent);
-        return $"L'objet est placé {positionText} par rapport à {parentName}";
+        return $"L'objet est placï¿½ {positionText} par rapport ï¿½ {parentName}";
     }
 
     /// <summary>

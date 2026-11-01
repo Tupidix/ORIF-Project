@@ -8,27 +8,27 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance { get; private set; }
 
-    public AudioClip touchscreenSound;
-    public AudioClip notificationSound;
-    public AudioClip successSound;
-    public AudioClip failureSound;
-    public AudioClip backgroundMusic;
+    [SerializeField] private AudioClip touchscreenSound;
+    [SerializeField] private AudioClip notificationSound;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip failureSound;
+    [SerializeField] private AudioClip backgroundMusic;
 
-    public AudioClip releaseLittleFork;
-    public AudioClip releaseLittleSpoon;
-    public AudioClip releaseSoundPlate;
-    public AudioClip releaseSoundGlassWine;
-    public AudioClip releaseSoundGlassWater;
-    public AudioClip releaseKnife;
-    public AudioClip releaseFork;
-    public AudioClip releaseSpoon;
+    [SerializeField] private AudioClip releaseLittleFork;
+    [SerializeField] private AudioClip releaseLittleSpoon;
+    [SerializeField] private AudioClip releaseSoundPlate;
+    [SerializeField] private AudioClip releaseSoundGlassWine;
+    [SerializeField] private AudioClip releaseSoundGlassWater;
+    [SerializeField] private AudioClip releaseKnife;
+    [SerializeField] private AudioClip releaseFork;
+    [SerializeField] private AudioClip releaseSpoon;
 
-    public AudioClip tablePlaced;
-    public AudioClip tableRemoved;
+    [SerializeField] private AudioClip tablePlaced;
+    [SerializeField] private AudioClip tableRemoved;
 
-    public AudioClip grapSound;
-    public AudioClip lockedSound;
-    public AudioClip lastTenSecondsForCountingDown;
+    [SerializeField] private AudioClip grapSound;
+    [SerializeField] private AudioClip lockedSound;
+    [SerializeField] private AudioClip lastTenSecondsForCountingDown;
 
     private AudioSource _sfxSource;
     private AudioSource _musicSource;

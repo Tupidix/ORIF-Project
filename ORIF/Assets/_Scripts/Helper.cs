@@ -387,7 +387,7 @@ public static class Helper
     /// </summary>
     /// <param name="culteries">The list of prefab entries defining which tags to look for.</param>
     /// <returns>A dictionary mapping each tag to its initial world position.</returns>
-    public static Dictionary<string, Vector3> GetCutleriesInitialPosition(List<PrefabCutleryManager.PrefabEntry> culteries)
+    public static Dictionary<string, Vector3> GetCutleriesInitialPosition(IReadOnlyList<PrefabCutleryManager.PrefabEntry> culteries)
     {
         Debug.Log("GetCutleriesInitialPosition");
         var positions = new Dictionary<string, Vector3>();
@@ -460,12 +460,7 @@ public static class Helper
     /// <returns>A list containing the latest action for each tag.</returns>
     public static List<ScenarioAction> GetLastActionsOfEachType(int menuIndex, List<List<ScenarioAction>> menusActions)
     {
-        var latestActionsByTag = new Dictionary<string, ScenarioAction>();
-        foreach (var action in menusActions[menuIndex])
-        {
-            latestActionsByTag[action.tag] = action;
-        }
-        return new List<ScenarioAction>(latestActionsByTag.Values);
+        return ScenarioActionLog.GetLatestActions(menusActions[menuIndex]);
     }
 
     /// <summary>

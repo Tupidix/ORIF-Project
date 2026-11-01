@@ -58,12 +58,12 @@ public class GameManager : MonoBehaviour
     private GameObject _jobSheet;
 
     // Scenario Elements
-    public PrefabCutleryManager prefabManager;
+    [SerializeField] private PrefabCutleryManager prefabManager;
     private List<Scenario> _scenarios;
     private static Scenario _selectedScenario;
     private int _scenarioIndex = 0;
-    private static List<List<ScenarioAction>> _menusActions;
-    private static List<Dictionary<string, bool>> _lockedCutleries;
+    private readonly ScenarioActionLog _actionLog = new ScenarioActionLog();
+    private readonly ScenarioPlacementLocks _placementLocks = new ScenarioPlacementLocks();
     private static List<Dictionary<string, GameObject>> _lstInstantiatedPrefabs;
     private static Dictionary<string, GameObject> _instantiatedPrefabs;
     private static Dictionary<string, GameObject> _instantiatedCutleriesPrefabsOnTrolly;
@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
     private GameObject[] _trollyCutleries;
     private static GameObject[] _trollyCutleriesRef;
     private GameObject[] _chairs;
-    public GameObject light;
+    [SerializeField] private GameObject light;
 
     // Specific Game Object References
     [SerializeField]
@@ -150,18 +150,15 @@ public class GameManager : MonoBehaviour
     // AR Plane Manager
     [SerializeField]
     private GameObject _arPlaneManager;
-    private ARPlaneManager _arPlaneManagerRef;
-    private TrackableCollection<ARPlane> _planes;
+    private TablePlacementPreview _placementPreview;
 
     // Flags and States
     private bool _isRaycasting = false;
     private static bool _tablePlaced = false;
     private static bool _readyToPlace = false;
-    private static bool _canBePlaced = false;
     private bool _tipsRead = false;
     private bool palmOpened = false;
-    private static int _menuIndex;
-    private static int _stepIndex = 0;
+    private readonly ScenarioProgress _progress = new ScenarioProgress();
     private static int txtTimerValue = 1;
     private static bool gameEnded = false;
     private Vector3 _tablePosition = new Vector3(0, 0, 0);
@@ -186,7 +183,7 @@ public class GameManager : MonoBehaviour
     private Button _activeButton;
     private JSONLoader _jsonLoader;
 
-    public Notification notification;
+    [SerializeField] private Notification notification;
 
     [SerializeField]
     private BoxCollider _trollyCollider;
@@ -207,19 +204,18 @@ public class GameManager : MonoBehaviour
         CreateTray();
         ToggleStepHelper(false);
 
-        _arPlaneManagerRef = _arPlaneManager.GetComponent<ARPlaneManager>();
         _tablePlacementRef.SetActive(false);
         NextState(GameState.MainMenu);
         _useRemoteScenariosToggle.onValueChanged.AddListener(HandleUseLocalOrRemoteScenarios);
     }
 
     /// <summary>
-    /// Handles table placement raycasting each frame. Moves the preview in front of the camera,
-    /// checks AR plane overlap to determine validity, and places the table when confirmed.
+    /// Updates the table placement each frame. Moves the preview in front of the camera,
+    /// and places the table at the displayed pose when confirmed.
     /// </summary>
-    private void TablePlacementRaycasting()
+    private void UpdateTablePlacement()
     {
-        if (_readyToPlace && !_tablePlaced && _canBePlaced)
+        if (_readyToPlace && !_tablePlaced)
         {
             _tablePlacementRef.SetActive(false);
             PlaceTableAndCutleries(_tablePosition, _tableRotation);
@@ -228,44 +224,17 @@ public class GameManager : MonoBehaviour
 
         if (_isRaycasting)
         {
-            Transform cameraTransform = Camera.main.transform;
+            if (_placementPreview == null)
+                _placementPreview = new TablePlacementPreview(_tablePlacementRef);
 
-            float distanceFromCamera = 0.75f;
-            Vector3 targetPosition = cameraTransform.position + cameraTransform.forward * distanceFromCamera;
-
-            _tableRotation = Quaternion.LookRotation(new Vector3(cameraTransform.forward.x, 0, cameraTransform.forward.z), Vector3.up);
-            _tablePosition = new Vector3(targetPosition.x, 0, targetPosition.z);
-
-            foreach (var p in _planes)
-            {
-                var tableRenderer = _tablePlacementRef.transform.Find("SM_Table").GetComponent<MeshRenderer>();
-                var trollyRenderer = _tablePlacementRef.transform.Find("SM_Trolly").GetComponent<MeshRenderer>();
-                Color color;
-
-                if (Helper.IsPointOnPlane(_tablePosition, p))
-                {
-                    _canBePlaced = false;
-                    color = new Color(0.8f, 0, 0, 0.58f);
-                }
-                else
-                {
-                    _canBePlaced = true;
-                    color = new Color(0, 0.8f, 0.6f, 0.58f);
-                }
-
-                tableRenderer.material.color = color;
-                trollyRenderer.material.color = color;
-            }
-
-            _tablePlacementRef.transform.rotation = _tableRotation;
-            _tablePlacementRef.transform.position = _tablePosition;
+            _placementPreview.Update(Camera.main.transform, out _tablePosition, out _tableRotation);
         }
     }
 
     void Update()
     {
 
-        TablePlacementRaycasting();
+        UpdateTablePlacement();
 
 
         if (palmOpened)
@@ -277,37 +246,32 @@ public class GameManager : MonoBehaviour
         PlaceElementInFrontOfPlayer();
         RotateElementToPlayer();
 
-        if (gameEnded) return;
-        if (_countdownTimer != null)
+        UpdateScenarioTimer();
+    }
+
+    private void UpdateScenarioTimer()
+    {
+        if (gameEnded || _countdownTimer == null || !ScenarioTimingPolicy.UsesCountdown(_selectedScenario))
+            return;
+
+        if (_countdownTimer.IsRemainingTenSeconds() && !_isTenSecondsAchieved)
         {
-            if (_selectedScenario.mode == Scenario.Mode.Training && _selectedScenario.level == Scenario.Level.Expert)
-            {
-                if (_countdownTimer.IsRemainingTenSeconds() && !_isTenSecondsAchieved)
-                {
-                    SoundManager.Instance.PlayLastTenSecondsCountdownSound();
-                    _isTenSecondsAchieved = true;
-                }
+            SoundManager.Instance.PlayLastTenSecondsCountdownSound();
+            _isTenSecondsAchieved = true;
+        }
 
-                if (_countdownTimer.GetIsCountingDownOver())
-                {
-                    _countdownTimer.StartTimer();
-                }
-            }
+        if (!_countdownTimer.GetIsCountingDownOver())
+            return;
 
-            if (_selectedScenario.mode == Scenario.Mode.Exam)
-            {
-                if (_countdownTimer.IsRemainingTenSeconds() && !_isTenSecondsAchieved)
-                {
-                    SoundManager.Instance.PlayLastTenSecondsCountdownSound();
-                    _isTenSecondsAchieved = true;
-                }
-
-                if (_countdownTimer.GetIsCountingDownOver())
-                {
-                    gameEnded = true;
-                    HandleEndScenario();
-                }
-            }
+        switch (ScenarioTimingPolicy.GetExpiryAction(_selectedScenario))
+        {
+            case ScenarioTimingPolicy.ExpiryAction.ContinueWithOvertime:
+                _countdownTimer.StartTimer();
+                break;
+            case ScenarioTimingPolicy.ExpiryAction.EndScenario:
+                gameEnded = true;
+                HandleEndScenario();
+                break;
         }
     }
 
@@ -318,11 +282,11 @@ public class GameManager : MonoBehaviour
     {
         _culteriesInitialPosition = new Dictionary<string, Vector3>();
         _chairsTransform = new List<Transform>();
-        _lockedCutleries = new List<Dictionary<string, bool>>();
+        _placementLocks.Reset();
         _menuReports = new List<GameObject>();
         _scenarios = new List<Scenario>();
         _instantiatedPrefabs = new Dictionary<string, GameObject>();
-        _menusActions = new List<List<ScenarioAction>>();
+        _actionLog.Reset();
     }
 
     /// <summary>
@@ -375,7 +339,7 @@ public class GameManager : MonoBehaviour
     private void InitializeScenarioAndMenus()
     {
         _selectedScenario = new Scenario();
-        _menuIndex = 0;
+        _progress.ResetMenus();
     }
 
     /// <summary>
@@ -488,11 +452,11 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void InitCountdownTimer()
     {
-        if (_selectedScenario.mode == Scenario.Mode.Exam || (_selectedScenario.mode == Scenario.Mode.Training && _selectedScenario.level == Scenario.Level.Expert))
+        if (ScenarioTimingPolicy.UsesCountdown(_selectedScenario))
         {
             _timerRef.SetActive(true);
             _countdownTimer = GetComponent<CountdownTimer>();
-            _countdownTimer.countdownMinutes = _selectedScenario.allowedTime;
+            _countdownTimer.SetDurationMinutes(_selectedScenario.allowedTime);
             _countdownTimer.SetCountdown();
             _countdownTimer.StartCountdown();
         }
@@ -546,7 +510,7 @@ public class GameManager : MonoBehaviour
         float countdownTimeDone = CalculateCountdownTimeDone();
         _countdownTimer.StopCountdown();
         _countdownTimer.StopTimer();
-        _endGameReportRef.GetComponent<EndGameReport>().GenerateEndGameReport(_selectedScenario, countdownTimeDone, _countdownTimer.elapsedTime, _menusActions, _endGameReportRef);
+        _endGameReportRef.GetComponent<EndGameReport>().GenerateEndGameReport(_selectedScenario, countdownTimeDone, _countdownTimer.ElapsedTime, _actionLog.Records, _endGameReportRef);
     }
 
     /// <summary>
@@ -563,13 +527,13 @@ public class GameManager : MonoBehaviour
     /// <returns>The time spent on the countdown in seconds.</returns>
     private float CalculateCountdownTimeDone()
     {
-        if (_countdownTimer.countdownSeconds <= 0)
+        if (_countdownTimer.RemainingSeconds <= 0)
         {
             return _selectedScenario.allowedTime * 60.0f;
         }
         else
         {
-            return _selectedScenario.allowedTime * 60.0f - _countdownTimer.countdownSeconds;
+            return _selectedScenario.allowedTime * 60.0f - _countdownTimer.RemainingSeconds;
         }
     }
 
@@ -780,8 +744,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void InitializeStepIndexes()
     {
-        _stepInterfaceUpdater.stepIndex = 0;
-        _stepIndex = 0;
+        _stepInterfaceUpdater.SetStepIndex(0);
+        _progress.ResetSteps();
     }
 
     /// <summary>
@@ -790,8 +754,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void InitializeStepInterfaceUpdater()
     {
-        _stepInterfaceUpdater.totalSteps = _selectedScenario.menus[_menuIndex].cutleryToPlace.Count;
-        _stepInterfaceUpdater.GenerateSteps(_selectedScenario, _menuIndex);
+        _stepInterfaceUpdater.GenerateSteps(_selectedScenario, _progress.MenuIndex);
     }
 
     /// <summary>
@@ -802,11 +765,11 @@ public class GameManager : MonoBehaviour
     {
         if (_selectedScenario.mode == Scenario.Mode.Learning)
         {
-            if (_menuIndex == 0)
+            if (_progress.MenuIndex == 0)
                 ToggleStepHelper(true);
 
             _stepInterfaceUpdater.UpdateUI();
-            Helper.SetCurrentItemMaterial(_stepInterfaceUpdater.GetSteps(), _stepIndex, _instantiatedCutleriesPrefabsOnTrolly, _currentItemMaterialRef);
+            Helper.SetCurrentItemMaterial(_stepInterfaceUpdater.GetSteps(), _progress.StepIndex, _instantiatedCutleriesPrefabsOnTrolly, _currentItemMaterialRef);
         }
     }
 
@@ -817,7 +780,7 @@ public class GameManager : MonoBehaviour
     {
         if (_selectedScenario.mode == Scenario.Mode.Training && _selectedScenario.level == Scenario.Level.Begginner)
         {
-            if (_menuIndex == 0)
+            if (_progress.MenuIndex == 0)
                 ToggleStepHelper(true);
 
             if (_stepInterfaceUpdater == null)
@@ -832,7 +795,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void UpdateStep()
     {
-        _stepIndex++;
+        _progress.AdvanceStep();
         print("UpdateStep");
 
         if (IsLastStepOfLastMenu())
@@ -857,7 +820,7 @@ public class GameManager : MonoBehaviour
     /// <returns>True if all steps of all menus have been completed.</returns>
     private bool IsLastStepOfLastMenu()
     {
-        return _stepIndex == _stepInterfaceUpdater.totalSteps && _menuIndex == _selectedScenario.menus.Length - 1;
+        return _progress.IsScenarioComplete(_stepInterfaceUpdater.TotalSteps, _selectedScenario.menus.Length);
     }
 
     /// <summary>
@@ -866,7 +829,7 @@ public class GameManager : MonoBehaviour
     /// <returns>True if all steps of the current menu have been completed.</returns>
     private bool IsLastStepOfCurrentMenu()
     {
-        return _stepIndex == _stepInterfaceUpdater.totalSteps;
+        return _progress.IsCurrentMenuComplete(_stepInterfaceUpdater.TotalSteps);
     }
 
     /// <summary>
@@ -900,10 +863,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void UpdateCurrentStep()
     {
-        _stepInterfaceUpdater.stepIndex = _stepIndex;
+        _stepInterfaceUpdater.SetStepIndex(_progress.StepIndex);
         if (_selectedScenario.level != Scenario.Level.Expert && _selectedScenario.mode == Scenario.Mode.Learning)
         {
-            Helper.SetCurrentItemMaterial(_stepInterfaceUpdater.GetSteps(), _stepIndex, _instantiatedCutleriesPrefabsOnTrolly, _currentItemMaterialRef);
+            Helper.SetCurrentItemMaterial(_stepInterfaceUpdater.GetSteps(), _progress.StepIndex, _instantiatedCutleriesPrefabsOnTrolly, _currentItemMaterialRef);
         }
     }
 
@@ -919,7 +882,7 @@ public class GameManager : MonoBehaviour
         RecreateTrolly();
         MenuIndexValueUpdater();
 
-        bool cond = _menuIndex < _selectedScenario.menus.Length;
+        bool cond = _progress.HasCurrentMenu(_selectedScenario.menus.Length);
 
         if (cond)
         {
@@ -937,7 +900,7 @@ public class GameManager : MonoBehaviour
     private void MenuIndexValueUpdater()
     {
         print("MenuIndexValueUpdater");
-        _menuIndex++;
+        _progress.AdvanceMenu();
         print("increment menuIndex");
     }
 
@@ -980,7 +943,7 @@ public class GameManager : MonoBehaviour
         print("CloneObjectPlacedBeforeNextMenu");
         List<GameObject> clonedObjects = new List<GameObject>();
 
-        foreach (var action in Helper.GetLastActionsOfEachType(_menuIndex, _menusActions))
+        foreach (var action in _actionLog.GetLatestActions(_progress.MenuIndex))
         {
             ProcessAction(action, clonedObjects);
         }
@@ -1104,7 +1067,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable, false to disable.</param>
     private void ToggleInteractorsR(bool active)
     {
-        Helper.ToggleArrayOfGameObjects(_interactorsR, active);
+        ScenarioInteractionController.SetHandInteractors(_interactorsR, active);
     }
 
     /// <summary>
@@ -1113,7 +1076,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable, false to disable.</param>
     private void ToggleInteractorsL(bool active)
     {
-        Helper.ToggleArrayOfGameObjects(_interactorsL, active);
+        ScenarioInteractionController.SetHandInteractors(_interactorsL, active);
     }
 
     /// <summary>
@@ -1290,8 +1253,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable ray interactors, false to disable them.</param>
     private void ToggleInteractorsLeftWithDirectEnable(bool active)
     {
-        ToggleInteractorsL(active);
-        _interactorsL[_interactorsL.Length - 1].SetActive(true);
+        ScenarioInteractionController.SetHandInteractors(_interactorsL, active, true);
     }
 
     /// <summary>
@@ -1300,8 +1262,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable ray interactors, false to disable them.</param>
     private void ToggleInteractorsRightWithDirectEnable(bool active)
     {
-        ToggleInteractorsR(active);
-        _interactorsR[_interactorsR.Length - 1].SetActive(true);
+        ScenarioInteractionController.SetHandInteractors(_interactorsR, active, true);
     }
 
     /// <summary>
@@ -1316,14 +1277,14 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Activates the table placement preview, enables raycasting and retrieves AR plane trackables.
+    /// Activates and immediately positions the table placement preview.
     /// </summary>
     public void TablePlacement()
     {
         print("Table placement"); 
         _tablePlacementRef.SetActive(true);
         _isRaycasting = true;
-        _planes = _arPlaneManagerRef.trackables;
+        UpdateTablePlacement();
 
     }
 
@@ -1338,8 +1299,7 @@ public class GameManager : MonoBehaviour
         print("Creating trolly");
         _instantiatedCutleriesPrefabsOnTrolly = new Dictionary<string, GameObject>();
 
-        Transform tmpTransform = CreateTemporaryTransform(tableTransform);
-        GameObject pTrolly = Instantiate(_trolly, tmpTransform.position, tmpTransform.rotation);
+        GameObject pTrolly = ScenarioEnvironmentFactory.CreateTrolly(_trolly, tableTransform);
         _trollyCollider = FindObjectsByType<BoxCollider>(FindObjectsSortMode.InstanceID).FirstOrDefault(o => o.CompareTag("Trolly"));
 
         InstantiateAndPlaceCutleriesOnTrolly(pTrolly);
@@ -1348,35 +1308,21 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Creates a temporary transform offset relative to the table for trolly positioning.
-    /// </summary>
-    /// <param name="tableTransform">The table transform to offset from.</param>
-    /// <returns>The transform of the temporary offset object (tagged "ToDelete").</returns>
-    private Transform CreateTemporaryTransform(Transform tableTransform)
-    {
-        var tmp = new GameObject("tmp");
-        tmp.transform.position = new Vector3(-1.2f, 0, -0.6f);
-        tmp.transform.rotation = tableTransform.rotation;
-        GameObject offsetObject = new GameObject("toDelete");
-        offsetObject.tag = "ToDelete";
-        offsetObject.transform.position = tmp.transform.position + tableTransform.position;
-        return offsetObject.transform;
-    }
-
-    /// <summary>
     /// Instantiates all cutlery group prefabs and parents them under the trolly mesh.
     /// </summary>
     /// <param name="pTrolly">The trolly GameObject to parent cutleries under.</param>
     private void InstantiateAndPlaceCutleriesOnTrolly(GameObject pTrolly)
     {
-        foreach (var groupCutleries in _trollyCutleriesRef)
+        ScenarioEnvironmentFactory.PopulateTrolly(pTrolly, _trollyCutleriesRef, _instantiatedCutleriesPrefabsOnTrolly);
+        foreach (var group in _instantiatedCutleriesPrefabsOnTrolly.Values)
         {
-            var pCutleries = Instantiate(groupCutleries);
-
-            pCutleries.transform.SetParent(pTrolly.transform.Find("SM_Trolly").transform, false);
-            pCutleries.transform.localPosition = groupCutleries.transform.localPosition;
-
-            _instantiatedCutleriesPrefabsOnTrolly.Add(pCutleries.name, pCutleries);
+            foreach (var interactable in group.GetComponentsInChildren<XRGrabInteractable>(true))
+            {
+                var binding = interactable.GetComponent<CutleryInteractionBinding>();
+                if (binding == null)
+                    binding = interactable.gameObject.AddComponent<CutleryInteractionBinding>();
+                binding.Initialize(this, interactable);
+            }
         }
     }
 
@@ -1410,7 +1356,7 @@ public class GameManager : MonoBehaviour
         InitializePlacement(tablePosition);
         var pTable = InstantiateTable(tablePosition, Quaternion.identity);
         var pTrolly = CreateTrolly(pTable.transform);
-        _culteriesInitialPosition = Helper.GetCutleriesInitialPosition(prefabManager.prefabEntries);
+        _culteriesInitialPosition = Helper.GetCutleriesInitialPosition(prefabManager.PrefabEntries);
         DisableCutleryInteractionForCutleriesOnTrolly();
 
         int i = 0;
@@ -1506,7 +1452,7 @@ public class GameManager : MonoBehaviour
     private GameObject InstantiateTable(Vector3 tablePosition, Quaternion tableRotation)
     {
         print("InstantiateTable");
-        var pTable = Instantiate(_table, tablePosition, tableRotation);
+        var pTable = ScenarioEnvironmentFactory.CreateTable(_table, tablePosition, tableRotation);
         return pTable;
     }
 
@@ -1521,7 +1467,7 @@ public class GameManager : MonoBehaviour
     private GameObject InitializeMenu(Menu menu, GameObject pTable, GameObject pTrolly)
     {
         print("InitializeMenu");
-        _lockedCutleries.Add(new Dictionary<string, bool>());
+        _placementLocks.AddMenu();
         _instantiatedPrefabs = new Dictionary<string, GameObject>
     {
         { "Table", pTable },
@@ -1547,51 +1493,11 @@ public class GameManager : MonoBehaviour
     private void PlaceCutleriesForMenu(Menu menu, GameObject pTable, ref int i, GameObject menuObject)
     {
         print("PlaceCutleriesForMenu");
-
-        foreach (var cultery in menu.cutleryToPlace)
+        if (ScenarioEnvironmentFactory.PopulatePlacementGuides(menu, _selectedScenario, prefabManager,
+            _instantiatedPrefabs, menuObject, i, _placementMaterialA, _placementMaterialB))
         {
-            if (!_instantiatedPrefabs.TryGetValue(cultery.Value.parent, out var parent))
-            {
-                print("Parent doesn't exist.");
-                return;
-            }
-
-            var tmp = new GameObject("tmp");
-            tmp.transform.position = cultery.Value.offset.position;
-            tmp.transform.rotation = cultery.Value.offset.rotation;
-
-            var t = ComputeTransformWithOffset(parent.transform, tmp.transform);
-
-            var position = t.position;
-            var rotation = t.rotation;
-            string tag = Helper.GetTagBasedOnScenarioLevel(_selectedScenario, cultery.Value.tag);
-
-            GameObject pCutlery = prefabManager.InstantiatePrefabByTag(tag, position, rotation);
-            ConfigureCutlery(pCutlery, cultery.Value.tag, tag, ref i, menuObject);
+            _lstInstantiatedPrefabs.Add(_instantiatedPrefabs);
         }
-        _lstInstantiatedPrefabs.Add(_instantiatedPrefabs);
-    }
-
-    /// <summary>
-    /// Configures a cutlery placement guide: sets its tag, disables collider and gravity,
-    /// applies alternating material and parents it under the menu object.
-    /// </summary>
-    /// <param name="pCutlery">The instantiated cutlery GameObject.</param>
-    /// <param name="defaultTag">The original cutlery tag to assign.</param>
-    /// <param name="tag">The resolved tag based on scenario difficulty level.</param>
-    /// <param name="i">The menu index used for material alternation.</param>
-    /// <param name="menuObject">The parent menu object to group under.</param>
-    private void ConfigureCutlery(GameObject pCutlery, string defaultTag, string tag, ref int i, GameObject menuObject)
-    {
-        pCutlery.tag = defaultTag;
-        pCutlery.GetComponent<BoxCollider>().enabled = false;
-        pCutlery.GetComponent<Rigidbody>().useGravity = false;
-        if (tag != "None")
-        {
-            pCutlery.GetComponent<MeshRenderer>().material = (i % 2 == 0) ? _placementMaterialA : _placementMaterialB;
-        }
-        pCutlery.transform.SetParent(menuObject.transform); // Parent the cutlery under the menu-specific game object
-        _instantiatedPrefabs.Add(defaultTag, pCutlery);
     }
 
     /// <summary>
@@ -1610,29 +1516,9 @@ public class GameManager : MonoBehaviour
         _chairs = GameObject.FindGameObjectsWithTag("Chair");
         foreach (var menu in GameObject.FindGameObjectsWithTag("Menu"))
         {
-            var tmpChairPosition = pTable.transform.position;
-            var tmpChairRotation = pTable.transform.rotation;
+            ScenarioEnvironmentFactory.ArrangeMenuAndCreateChair(_chair, pTable.transform, menu.transform, tableLength, i);
 
-            if (i % 2 == 0) // top edge
-            {
-                menu.transform.position = new Vector3(0, 0, tableLength / 3);
-                tmpChairPosition = new Vector3(pTable.transform.position.x, 0.451f, pTable.transform.position.z + 0.515f);
-                tmpChairRotation = Quaternion.Euler(-90, 180, 0);
-            }
-            else // bottom edge
-            {
-                menu.transform.position = new Vector3(0, 0, -tableLength / 3);
-                menu.transform.RotateAround(pTable.transform.position, Vector3.up, 180);
-                var tmpPos = new Vector3(menu.transform.position.x, menu.transform.position.y, menu.transform.position.z - 0.615f);
-                menu.transform.position = tmpPos;
-                tmpChairPosition = new Vector3(pTable.transform.position.x, 0.451f, pTable.transform.position.z - 0.515f);
-                tmpChairRotation = Quaternion.Euler(-90, 0, 0);
-            }
-
-            var pChair = Instantiate(_chair, tmpChairPosition, tmpChairRotation);
-            pChair.tag = "Chair";
-
-            _menusActions.Add(new List<ScenarioAction>());
+            _actionLog.AddMenu();
             AddDefaultActionsForMenu(i);
             if (_selectedScenario.mode != Scenario.Mode.Exam)
             {
@@ -1758,9 +1644,9 @@ public class GameManager : MonoBehaviour
     public void HandleGrapEvent(string tag)
     {
         SoundManager.Instance.PlayGrapSound();
-        print($"[{tag}] - Current step {_stepIndex} | Grapped element index {_selectedScenario.menus[_menuIndex].cutleryToPlace[tag].placementOrderIndex}");
+        print($"[{tag}] - Current step {_progress.StepIndex} | Grapped element index {_selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex}");
 
-        if (_selectedScenario.menus[_menuIndex].cutleryToPlace[tag].placementOrderIndex != _stepIndex)
+        if (_selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex != _progress.StepIndex)
         {
             print("This isn't the cultery to place..!");
         }
@@ -1820,7 +1706,7 @@ public class GameManager : MonoBehaviour
     private void ReverseMenusOrder()
     {
         print("The first object placed is in zone B, reversing the menu order.");
-        _menuIndex = _selectedScenario.menus.Length - 1;
+        _progress.SelectLastMenu(_selectedScenario.menus.Length);
     }
 
     /// <summary>
@@ -1910,10 +1796,10 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        var pCutlery = _lstInstantiatedPrefabs[_menuIndex][tag];
+        var pCutlery = _lstInstantiatedPrefabs[_progress.MenuIndex][tag];
         if (pCutlery == null)
         {
-            print($"pCutlery is null. Menu INDEX [{_menuIndex}] TAG [{tag}]");
+            print($"pCutlery is null. Menu INDEX [{_progress.MenuIndex}] TAG [{tag}]");
             return;
         }
 
@@ -1921,10 +1807,10 @@ public class GameManager : MonoBehaviour
 
         if (tag == "Plate")
         {
-            Helper.ShiftObjectsPositionBasedOnPlate(objects, _menuIndex, _lstInstantiatedPrefabs);
+            Helper.ShiftObjectsPositionBasedOnPlate(objects, _progress.MenuIndex, _lstInstantiatedPrefabs);
         }
 
-        if (IsValid(objects, _selectedScenario.menus[_menuIndex].cutleryToPlace[tag].placementOrderIndex, _stepIndex))
+        if (IsValid(objects, _selectedScenario.menus[_progress.MenuIndex].cutleryToPlace[tag].placementOrderIndex, _progress.StepIndex))
         {
             HandleValidCutlery(objects, index);
         }
@@ -1937,7 +1823,7 @@ public class GameManager : MonoBehaviour
     /// <returns>True if the tag is present in the current menu.</returns>
     private bool IsCutleryInMenu(string tag)
     {
-        return _lstInstantiatedPrefabs[_menuIndex].ContainsKey(tag);
+        return _lstInstantiatedPrefabs[_progress.MenuIndex].ContainsKey(tag);
     }
 
     /// <summary>
@@ -1947,7 +1833,7 @@ public class GameManager : MonoBehaviour
     /// <param name="obj">The misplaced GameObject for position/rotation recording.</param>
     private void AddActionForMissingCutlery(string tag, GameObject obj)
     {
-        _menusActions[_menuIndex].Add(new ScenarioAction(false, false, false, obj.tag, obj.transform.position, obj.transform.rotation, -1));
+        _actionLog.RecordUnexpectedItem(_progress.MenuIndex, obj.tag, obj.transform.position, obj.transform.rotation);
         print($"Added action to the menu but the cultery {tag} is not in the menu.");
     }
 
@@ -2069,12 +1955,7 @@ public class GameManager : MonoBehaviour
     /// <returns>The total locked cutlery count.</returns>
     private int CalculateTotalLockedCutleries()
     {
-        int total = 0;
-        foreach (var locked in _lockedCutleries)
-        {
-            total += locked.Count;
-        }
-        return total;
+        return _placementLocks.TotalLockedCount;
     }
 
     /// <summary>
@@ -2116,18 +1997,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void DisableCutleryInteractionForLockedCutleries()
     {
-        foreach (var tag in _lockedCutleries[_menuIndex])
-        {
-            var objects = GameObject.FindGameObjectsWithTag(tag.Key);
-            foreach (var obj in objects)
-            {
-                var interactable = obj.GetComponent<XRGrabInteractable>();
-                if (interactable != null)
-                {
-                    interactable.enabled = false;
-                }
-            }
-        }
+        ScenarioInteractionController.SetLockedGrabEnabled(_placementLocks.GetLockedTags(_progress.MenuIndex), false);
     }
 
     /// <summary>
@@ -2136,17 +2006,7 @@ public class GameManager : MonoBehaviour
     private void DisableCutleryInteractionForCutleriesOnTrolly()
     {
         print("DisableCutleryInteractionForCutleriesOnTrolly");
-        
-        for (int i = 0; i < prefabManager.prefabEntries.Count - 2; i++)
-        {
-            var cutlery = prefabManager.prefabEntries[i];
-            var objects = GameObject.FindGameObjectsWithTag(cutlery.tag);
-            foreach (var o in objects)
-            {
-                if (o.GetComponent<XRGrabInteractable>() == null) continue;
-                o.GetComponent<XRGrabInteractable>().enabled = false;
-            }
-        }
+        ScenarioInteractionController.SetCatalogGrabEnabled(prefabManager.PrefabEntries, false);
     }
 
     /// <summary>
@@ -2155,16 +2015,7 @@ public class GameManager : MonoBehaviour
     private void EnableCutleryInteractionForCutleriesOnTrolly()
     {
         print("EnableCutleryInteractionForCutleriesOnTrolly");
-        for (int i = 0; i < prefabManager.prefabEntries.Count - 2; i++)
-        {
-            var cutlery = prefabManager.prefabEntries[i];
-            var objects = GameObject.FindGameObjectsWithTag(cutlery.tag);
-            foreach (var o in objects)
-            {
-                if (o.GetComponent<XRGrabInteractable>() == null) continue;
-                o.GetComponent<XRGrabInteractable>().enabled = true;
-            }
-        }
+        ScenarioInteractionController.SetCatalogGrabEnabled(prefabManager.PrefabEntries, true);
     }
 
     /// <summary>
@@ -2175,44 +2026,13 @@ public class GameManager : MonoBehaviour
     private bool ValidateMenusPlacement()
     {
         if (_selectedScenario.mode != Scenario.Mode.Exam)
-        {
             return true;
-        }
 
-        int i = 0;
-        foreach (var lockedCutleriesForMenu in _lockedCutleries)
+        for (int i = 0; i < _placementLocks.MenuCount; i++)
         {
-            if (!AreAllCutleriesCorrectlyPlaced(lockedCutleriesForMenu, i))
-            {
+            if (!_placementLocks.IsMenuCorrect(i, _actionLog.GetLatestActions(i).Count))
                 return false;
-            }
-            i++;
         }
-        return true;
-    }
-
-    /// <summary>
-    /// Checks whether all cutleries in a specific menu have been locked with correct placements.
-    /// Compares action count against locked count and verifies all values are true.
-    /// </summary>
-    /// <param name="lockedCutleriesForMenu">The dictionary of locked cutleries for this menu.</param>
-    /// <param name="menuIndex">The menu index to check actions against.</param>
-    /// <returns>True if all cutleries are correctly placed.</returns>
-    private bool AreAllCutleriesCorrectlyPlaced(Dictionary<string, bool> lockedCutleriesForMenu, int menuIndex)
-    {
-        if (Helper.GetLastActionsOfEachType(menuIndex, _menusActions).Count != lockedCutleriesForMenu.Count)
-        {
-            return false;
-        }
-
-        foreach (var cultery in lockedCutleriesForMenu)
-        {
-            if (!cultery.Value)
-            {
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -2234,25 +2054,24 @@ public class GameManager : MonoBehaviour
         }
 
         var (distance, rotation) = CalculateDistanceAndRotation(objects);
-        bool correctDistance = ValidateDistance(distance);
-        bool correctRotation = ValidateRotation(rotation, objects);
-        bool correctOrder = ValidateOrder(pickedUpOrderIndex, currentOrderIndex);
+        var result = CutleryPlacementValidator.Validate(_selectedScenario, objects[0].tag,
+            distance, rotation, pickedUpOrderIndex, currentOrderIndex);
 
         Helper.LogValidationResults(distance, rotation, currentOrderIndex, pickedUpOrderIndex);
 
-        AddScenarioAction(correctDistance, correctRotation, correctOrder, objects, pickedUpOrderIndex);
+        AddScenarioAction(result.PositionCorrect, result.RotationCorrect, result.OrderCorrect, objects, pickedUpOrderIndex);
 
-        if (IsCutleryPlacementCorrect(correctOrder, correctDistance, correctRotation, objects))
+        if (IsCutleryPlacementCorrect(result.OrderCorrect, result.PositionCorrect, result.RotationCorrect, objects))
         {
             LockCutlery(objects);
         }
 
         if (_selectedScenario.mode != Scenario.Mode.Exam)
         {
-            UpdateReport(_menuIndex);
+            UpdateReport(_progress.MenuIndex);
         }
 
-        return correctOrder && correctDistance && correctRotation;
+        return result.IsCorrect;
     }
 
     /// <summary>
@@ -2284,65 +2103,6 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Validates the placement distance against the threshold.
-    /// Returns true if position validation is disabled in the scenario.
-    /// </summary>
-    /// <param name="distance">The measured distance between placed and expected positions.</param>
-    /// <param name="distanceThreshold">The maximum acceptable distance (default 0.15).</param>
-    /// <returns>True if the distance is acceptable.</returns>
-    private bool ValidateDistance(float distance, float distanceThreshold = 0.15f)
-    {
-        if (_selectedScenario.validator.position)
-        {
-            return distance <= distanceThreshold;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// Validates the placement rotation against the threshold.
-    /// Skips validation for round items (Plate, GlassWine, GlassWater).
-    /// Returns true if rotation validation is disabled in the scenario.
-    /// </summary>
-    /// <param name="rotation">The measured rotation difference in degrees.</param>
-    /// <param name="objects">The tagged objects (index 0 is checked for round item tags).</param>
-    /// <param name="rotationThreshold">The maximum acceptable rotation in degrees (default 9.5).</param>
-    /// <returns>True if the rotation is acceptable.</returns>
-    private bool ValidateRotation(float rotation, GameObject[] objects, float rotationThreshold = 9.5f)
-    {
-        // We do not check for the items that are round
-        if (objects[0].CompareTag("Plate") || objects[0].CompareTag("GlassWine") || objects[0].CompareTag("GlassWater"))
-        {
-            return true;
-        }
-
-        if (_selectedScenario.validator.rotation)
-        {
-            return rotation <= rotationThreshold;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Validates the placement order by comparing picked-up index to the current step index.
-    /// Order is enforced in Learning mode, Beginner Training or when order validation is enabled.
-    /// </summary>
-    /// <param name="pickedUpOrderIndex">The placement order index of the picked-up item.</param>
-    /// <param name="currentOrderIndex">The expected current step order index.</param>
-    /// <returns>True if the order is correct or order validation is not required.</returns>
-    private bool ValidateOrder(int pickedUpOrderIndex, int currentOrderIndex)
-    {
-        if (_selectedScenario.validator.order ||
-            _selectedScenario.mode == Scenario.Mode.Learning ||
-            (_selectedScenario.mode == Scenario.Mode.Training && _selectedScenario.level == Scenario.Level.Begginner))
-        {
-            return pickedUpOrderIndex == currentOrderIndex;
-        }
-        return true;
-    }
-
-    /// <summary>
     /// Records a new scenario action with the validation results for the current placement.
     /// </summary>
     /// <param name="correctDistance">Whether the distance criterion passed.</param>
@@ -2352,7 +2112,7 @@ public class GameManager : MonoBehaviour
     /// <param name="pickedUpOrderIndex">The placement order index of the item.</param>
     private void AddScenarioAction(bool correctDistance, bool correctRotation, bool correctOrder, GameObject[] objects, int pickedUpOrderIndex)
     {
-        _menusActions[_menuIndex].Add(new ScenarioAction(correctDistance, correctRotation, correctOrder, objects[0].tag, objects[1].transform.position, objects[1].transform.rotation, pickedUpOrderIndex));
+        _actionLog.RecordPlacement(_progress.MenuIndex, correctDistance, correctRotation, correctOrder, objects[0].tag, objects[1].transform.position, objects[1].transform.rotation, pickedUpOrderIndex);
         print("Action added");
     }
 
@@ -2366,7 +2126,7 @@ public class GameManager : MonoBehaviour
     /// <returns>True if all criteria pass and the item is not already locked.</returns>
     private bool IsCutleryPlacementCorrect(bool correctOrder, bool correctDistance, bool correctRotation, GameObject[] objects)
     {
-        return !_lockedCutleries[_menuIndex].ContainsKey(objects[0].tag) && (correctOrder && correctDistance && correctRotation);
+        return !_placementLocks.IsLocked(_progress.MenuIndex, objects[0].tag) && (correctOrder && correctDistance && correctRotation);
     }
 
     /// <summary>
@@ -2376,13 +2136,9 @@ public class GameManager : MonoBehaviour
     /// <param name="objects">The tagged objects (index 0 = placed item, alternating index = guide to reset).</param>
     private void LockCutlery(GameObject[] objects)
     {
-        var material = _defaultCutleryMaterialRef;
-        _lockedCutleries[_menuIndex].Add(objects[0].tag, true);
-        var indexObjectToRemove = (_menuIndex % 2 != 0) ? 1 : 0;
-        if (objects[0].tag.Contains("Glass")) material = _defaultGlassMaterialRef;
-        if (objects[0].tag.Contains("Plate")) material = _defaultGlassMaterialRef;
-        Helper.RemoveCurrentItemMaterial(objects[indexObjectToRemove].GetComponent<MeshRenderer>(), material);
-        objects[0].GetComponent<Rigidbody>().mass = 9999;
+        _placementLocks.LockCorrect(_progress.MenuIndex, objects[0].tag);
+        ScenarioInteractionController.ApplyPlacementLock(objects, _progress.MenuIndex,
+            _defaultCutleryMaterialRef, _defaultGlassMaterialRef);
     }
 
     /// <summary>
@@ -2392,7 +2148,7 @@ public class GameManager : MonoBehaviour
     public void UpdateReport(int menuIndex)
     {
         print($"Update report {menuIndex}");
-        _menuReports[menuIndex].GetComponent<MissionRecap>().UpdateReport(_selectedScenario, _selectedScenario.menus[menuIndex].name, Helper.GetLastActionsOfEachType(menuIndex, _menusActions), _menuReports[menuIndex].GetComponent<RectTransform>(), menuIndex);
+        _menuReports[menuIndex].GetComponent<MissionRecap>().UpdateReport(_selectedScenario, _selectedScenario.menus[menuIndex].name, _actionLog.GetLatestActions(menuIndex), _menuReports[menuIndex].GetComponent<RectTransform>(), menuIndex);
     }
 
     /// <summary>
@@ -2412,21 +2168,15 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Handles a left thumbs-up gesture: confirms table placement if the position is valid,
-    /// or shows a warning notification if invalid.
+    /// Handles a left thumbs-up gesture: confirms the displayed table position once,
+    /// while placement preview is active.
     /// </summary>
     public void HandleThumbsUpLeft()
     {
         if (_gameStateRef == GameState.TablePlacement)
         {
-            if (_canBePlaced)
-            {
+            if (_isRaycasting && !_readyToPlace && !_tablePlaced)
                 HandleSuccessfulTablePlacement();
-            }
-            else
-            {
-                HandleFailedTablePlacement();
-            }
         }
     }
 
@@ -2440,14 +2190,6 @@ public class GameManager : MonoBehaviour
         _isRaycasting = false;
         _readyToPlace = true;
         ToggleInteractorsR(false);
-    }
-
-    /// <summary>
-    /// Displays a warning notification for an invalid table placement position.
-    /// </summary>
-    private void HandleFailedTablePlacement()
-    {
-        DisplayNotification("Position de table incorrect !", 2);
     }
 
     /// <summary>
@@ -2626,55 +2368,7 @@ public class GameManager : MonoBehaviour
     {
         print($"AddDefaultActionsForMenu {menuIndex}");
 
-        var tags = GetCutleryTags(menuIndex);
-        var orders = GetCutleryOrders(menuIndex);
-
-        AddDefaultScenarioActions(menuIndex, tags, orders);
-    }
-
-    /// <summary>
-    /// Extracts all cutlery tag keys from the specified menu's cutlery-to-place dictionary.
-    /// </summary>
-    /// <param name="menuIndex">The menu index to extract tags from.</param>
-    /// <returns>A list of cutlery tag strings.</returns>
-    private List<string> GetCutleryTags(int menuIndex)
-    {
-        List<string> tags = new List<string>();
-        foreach (var c in _selectedScenario.menus[menuIndex].cutleryToPlace)
-        {
-            tags.Add(c.Key);
-        }
-        return tags;
-    }
-
-    /// <summary>
-    /// Extracts all placement order indexes from the specified menu's cutlery-to-place dictionary.
-    /// </summary>
-    /// <param name="menuIndex">The menu index to extract orders from.</param>
-    /// <returns>A list of placement order integers.</returns>
-    private List<int> GetCutleryOrders(int menuIndex)
-    {
-        List<int> orders = new List<int>();
-        foreach (var c in _selectedScenario.menus[menuIndex].cutleryToPlace)
-        {
-            orders.Add(c.Value.placementOrderIndex);
-        }
-        return orders;
-    }
-
-    /// <summary>
-    /// Creates and adds default (all-incorrect) ScenarioAction entries for all cutleries in a menu.
-    /// </summary>
-    /// <param name="menuIndex">The menu index to add actions to.</param>
-    /// <param name="tags">The list of cutlery tags.</param>
-    /// <param name="orders">The list of corresponding placement orders.</param>
-    private void AddDefaultScenarioActions(int menuIndex, List<string> tags, List<int> orders)
-    {
-        for (int i = 0; i < _selectedScenario.menus[menuIndex].cutleryToPlace.Count; i++)
-        {
-            var action = new ScenarioAction(false, false, false, tags[i], new Vector3(), Quaternion.identity, orders[i]);
-            _menusActions[menuIndex].Add(action);
-        }
+        _actionLog.AddDefaults(menuIndex, _selectedScenario.menus[menuIndex]);
     }
 
     /// <summary>
@@ -2720,9 +2414,9 @@ public class GameManager : MonoBehaviour
         _leftHandRef.SetActive(true);
         _celebrationEndGameRef.SetActive(false);
         _celebrationEndGameTipRef.SetActive(false);
-        _menuIndex = 0;
-        _menusActions = new List<List<ScenarioAction>>();
-        _lockedCutleries = new List<Dictionary<string, bool>>();
+        _progress.ResetMenus();
+        _actionLog.Reset();
+        _placementLocks.Reset();
         _isTenSecondsAchieved = false;
         _isFirstCutleryZonePlacementChecked = false;
         _isFirstCutleryPlacedInZoneB = false;
@@ -2735,8 +2429,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ResetStepIndex()
     {
-        _stepIndex = 0;
-        _stepInterfaceUpdater.stepIndex = _stepIndex;
+        _progress.ResetSteps();
+        _stepInterfaceUpdater.SetStepIndex(_progress.StepIndex);
     }
 
     /// <summary>
@@ -2780,7 +2474,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void DestroyUnnecessaryPrefabs()
     {
-        foreach (var o in _lstInstantiatedPrefabs[_menuIndex])
+        foreach (var o in _lstInstantiatedPrefabs[_progress.MenuIndex])
         {
             if (o.Key == "Table" || o.Key == "Trolly") continue;
             GameObject.Destroy(o.Value);
@@ -2792,13 +2486,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void LockCutleryForCurrentMenu()
     {
-        foreach (var c in _selectedScenario.menus[_menuIndex].cutleryToPlace)
-        {
-            if (!_lockedCutleries[_menuIndex].ContainsKey(c.Key))
-            {
-                _lockedCutleries[_menuIndex].Add(c.Key, false);
-            }
-        }
+        _placementLocks.FinalizeMissing(_progress.MenuIndex,
+            _selectedScenario.menus[_progress.MenuIndex].cutleryToPlace.Keys);
     }
 
     /// <summary>
@@ -2808,7 +2497,7 @@ public class GameManager : MonoBehaviour
     private void ProceedToNextStepOrEndScenario()
     {
         print("ProceedToNextStepOrEndScenario");
-        bool cond = _menuIndex + 1 == _selectedScenario.menus.Length;
+        bool cond = _progress.IsLastMenu(_selectedScenario.menus.Length);
 
         if (cond)
         {

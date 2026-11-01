@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class CountdownTimer : MonoBehaviour
 {
-    public float countdownMinutes = 1.0f;
-    public float countdownSeconds = 0;
-    public float elapsedTime = 0.0f;
+    [SerializeField] private float countdownMinutes = 1.0f;
+    [SerializeField] private float countdownSeconds = 0;
+    [SerializeField] private float elapsedTime = 0.0f;
 
-    public TextMeshProUGUI countdownText;
-    public TextMeshProUGUI overtimeText;
+    [SerializeField] private TextMeshProUGUI countdownText;
+    [SerializeField] private TextMeshProUGUI overtimeText;
+
+    public float RemainingSeconds => countdownSeconds;
+    public float ElapsedTime => elapsedTime;
+
+    public void SetDurationMinutes(float minutes) => countdownMinutes = minutes;
 
     private bool _isCountingDown = false;
     private bool _isTimerEnabled = false;

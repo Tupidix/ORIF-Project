@@ -75,3 +75,7 @@ Website/scenario_creator/dist/
 APK/
 
 ORIF/.vs/
+
+# Local project documentation
+/CAHIER_DES_CHARGES_REFACTORISATION.md
+/REFACTORING.md

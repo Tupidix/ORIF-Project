@@ -11,9 +11,13 @@ namespace Scenarios
     /// </summary>
     public class JSONLoader : MonoBehaviour
     {
-        public List<Scenario> _scenarios;
+        private List<Scenario> _scenarios;
 
         private const string ScenariosResourceFolder = "Scenarios";
+
+        [SerializeField]
+        [Tooltip("Full URL of the scenario creator's Unity API endpoint.")]
+        private string _scenarioServerUrl = "http://SET_YOUR_IP_HERE:5000/api/unityScenarios";
 
         void Awake()
         {
@@ -50,11 +54,7 @@ namespace Scenarios
         public IEnumerator LoadScenarioServer()
         {
             _scenarios = new List<Scenario>();
-            // VERY IMPORTANT IF YOU WANT TO USE THE WEBSERVER DATA !
-            string ip = "SET_YOUR_IP_HERE";
-            string url = $"http://{ip}:5000/api/unityScenarios";
-
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(_scenarioServerUrl))
             {
                 webRequest.SetRequestHeader("Content-Type", "application/json");
                 yield return webRequest.SendWebRequest();
