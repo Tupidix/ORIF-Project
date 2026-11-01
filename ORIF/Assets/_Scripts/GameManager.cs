@@ -359,8 +359,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void CreateTray()
     {
-        _pTray = Instantiate(_tray, _interactorsL[_interactorsL.Length - 1].transform.position, Quaternion.identity);
-        _pTray.SetActive(false);
+        _pTray = ScenarioEnvironmentFactory.CreateHiddenTray(_tray, _interactorsL[_interactorsL.Length - 1].transform.position);
     }
 
     /// <summary>
@@ -1331,15 +1330,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void DestroyAllCutleriesOnTrolly()
     {
-        foreach (var cutlery in _instantiatedCutleriesPrefabsOnTrolly.Values)
-        {
-            if (cutlery != null)
-            {
-                Destroy(cutlery);
-            }
-        }
-
-        _instantiatedCutleriesPrefabsOnTrolly.Clear();
+        ScenarioEnvironmentCleanup.ClearTrolly(_instantiatedCutleriesPrefabsOnTrolly);
     }
 
     /// <summary>
@@ -2252,17 +2243,9 @@ public class GameManager : MonoBehaviour
     private void DestroyAllInstantiatedObjects()
     {
         print("DestroyAllInstantiatedObjects");
-        if (_lstInstantiatedPrefabs != null)
-        {
-            Helper.DestroyObjectsFromListOfDictionnaries(_lstInstantiatedPrefabs);
-            _lstInstantiatedPrefabs = new List<Dictionary<string, GameObject>>();
-        }
-        Helper.DestroyObjectsFromList(_menuReports);
+        ScenarioEnvironmentCleanup.ClearPlacedEnvironment(_lstInstantiatedPrefabs, _menuReports);
+        _lstInstantiatedPrefabs = new List<Dictionary<string, GameObject>>();
         _menuReports = new List<GameObject>();
-        Helper.DestroyImmediateObjectsWithTag("Table");
-        Helper.DestroyImmediateObjectsWithTag("Menu");
-        Helper.DestroyObjectsWithTag("Trolly");
-        Helper.DestroyObjectsWithTag("Chair");
     }
 
     /// <summary>
@@ -2438,9 +2421,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void CleanupOldObjects()
     {
-        Helper.DestroyObjectsWithTag("EndGameReport");
-        Destroy(_pTray);
-        Helper.DestroyObjectsWithTag("Locked");
+        ScenarioEnvironmentCleanup.ClearSessionObjects(_pTray);
     }
 
     /// <summary>
@@ -2474,11 +2455,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void DestroyUnnecessaryPrefabs()
     {
-        foreach (var o in _lstInstantiatedPrefabs[_progress.MenuIndex])
-        {
-            if (o.Key == "Table" || o.Key == "Trolly") continue;
-            GameObject.Destroy(o.Value);
-        }
+        ScenarioEnvironmentCleanup.ClearMenuGuides(_lstInstantiatedPrefabs[_progress.MenuIndex]);
     }
 
     /// <summary>

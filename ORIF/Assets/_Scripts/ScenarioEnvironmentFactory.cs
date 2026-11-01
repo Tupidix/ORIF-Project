@@ -6,6 +6,13 @@ using UnityEngine;
 /// </summary>
 public static class ScenarioEnvironmentFactory
 {
+    public static GameObject CreateHiddenTray(GameObject prefab, Vector3 position)
+    {
+        GameObject tray = Object.Instantiate(prefab, position, Quaternion.identity);
+        tray.SetActive(false);
+        return tray;
+    }
+
     public static GameObject CreateTable(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         return Object.Instantiate(prefab, position, rotation);
