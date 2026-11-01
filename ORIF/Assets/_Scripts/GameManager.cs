@@ -103,7 +103,8 @@ public class GameManager : MonoBehaviour
     private static GameObject _leftHandRef;
     private static GameObject _stepHelperRef;
     private static GameObject _folderPaperRef;
-    private static GameObject _pTray;
+    private GameObject _pTray;
+    private TrayController _trayController;
     private static GameObject _timerRef;
     private static CountdownTimer _countdownTimer;
     private TransformSnapshot _tableTransform;
@@ -157,7 +158,6 @@ public class GameManager : MonoBehaviour
     private static bool _tablePlaced = false;
     private static bool _readyToPlace = false;
     private bool _tipsRead = false;
-    private bool palmOpened = false;
     private readonly ScenarioProgress _progress = new ScenarioProgress();
     private static int txtTimerValue = 1;
     private static bool gameEnded = false;
@@ -237,11 +237,7 @@ public class GameManager : MonoBehaviour
         UpdateTablePlacement();
 
 
-        if (palmOpened)
-        {
-            var lastInteractor = _interactorsL[_interactorsL.Length - 1];
-            UpdateTrayTransform(lastInteractor.transform);
-        }
+        _trayController?.UpdatePose();
 
         PlaceElementInFrontOfPlayer();
         RotateElementToPlayer();
@@ -343,23 +339,12 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the tray position and rotation to follow the left hand interactor with a local offset.
-    /// </summary>
-    /// <param name="lastInteractor">The transform of the last left-hand interactor to follow.</param>
-    private void UpdateTrayTransform(Transform lastInteractor)
-    {
-        Vector3 localOffset = new Vector3(-0.175f, 0, 0);
-        Vector3 globalOffset = lastInteractor.TransformVector(localOffset);
-        _pTray.transform.rotation = lastInteractor.rotation * Quaternion.Euler(new Vector3(90, 0, 0));
-        _pTray.transform.position = lastInteractor.position + globalOffset;
-    }
-
-    /// <summary>
     /// Instantiates the tray prefab at the left hand position and deactivates it until needed.
     /// </summary>
     private void CreateTray()
     {
         _pTray = ScenarioEnvironmentFactory.CreateHiddenTray(_tray, _interactorsL[_interactorsL.Length - 1].transform.position);
+        _trayController = new TrayController(_pTray, _leftHandRef, _interactorsL[_interactorsL.Length - 1]);
     }
 
     /// <summary>
@@ -438,9 +423,7 @@ public class GameManager : MonoBehaviour
     {
         print("Scenario Ended");
 
-        palmOpened = false;
-        _leftHandRef.SetActive(true);
-        _pTray.SetActive(false);
+        _trayController.Close();
 
         CreateEndGameReport();
     }
@@ -876,7 +859,7 @@ public class GameManager : MonoBehaviour
     private void InitNextMenu()
     {
         print("InitNextMenu");
-        _pTray.GetComponent<TrayCollider>().ClearAllReferences();
+        _trayController.ClearCarriedObjects();
         CloneObjectPlacedBeforeNextMenu();
         RecreateTrolly();
         MenuIndexValueUpdater();
@@ -2248,98 +2231,18 @@ public class GameManager : MonoBehaviour
         _menuReports = new List<GameObject>();
     }
 
-    /// <summary>
-    /// Handles the open palm up left gesture being performed: activates the left interactor,
-    /// opens the palm, hides the left hand model and shows the tray.
-    /// </summary>
+    /// <summary>Opens the tray when the left palm gesture is detected during play.</summary>
     public void HandleOpenPalmUpLeftPerformed()
     {
         if (_gameStateRef == GameState.PlayScenario)
-        {
-            ActivateLeftInteractor();
-            UpdatePalmStatus(true);
-            DeactivateLeftHand();
-            ActivateCollidedObjects();
-            ActivateTray();
-        }
+            _trayController.Open();
     }
 
-    /// <summary>
-    /// Activates the last (direct) left interactor.
-    /// </summary>
-    private void ActivateLeftInteractor()
-    {
-        _interactorsLeftRef[_interactorsL.Length - 1].SetActive(true);
-    }
-
-    /// <summary>
-    /// Updates the palm opened status flag.
-    /// </summary>
-    /// <param name="state">True if the palm is open, false otherwise.</param>
-    private void UpdatePalmStatus(bool state)
-    {
-        palmOpened = state;
-    }
-
-    /// <summary>
-    /// Hides the left hand model.
-    /// </summary>
-    private void DeactivateLeftHand()
-    {
-        _leftHandRef.SetActive(false);
-    }
-
-    /// <summary>
-    /// Placeholder for activating collided objects when the palm opens (currently unused).
-    /// </summary>
-    private void ActivateCollidedObjects()
-    {
-    }
-
-    /// <summary>
-    /// Shows the tray GameObject.
-    /// </summary>
-    private void ActivateTray()
-    {
-        _pTray.SetActive(true);
-    }
-
-    /// <summary>
-    /// Handles the open palm up left gesture ending: closes the palm,
-    /// shows the left hand model and hides the tray.
-    /// </summary>
+    /// <summary>Closes the tray when the left palm gesture ends during play.</summary>
     public void HandleOpenPalmUpLeftEnded()
     {
         if (_gameStateRef == GameState.PlayScenario)
-        {
-            UpdatePalmStatus(false);
-            ActivateLeftHand();
-            DeactivateCollidedObjects();
-            DeactivateTray();
-        }
-    }
-
-    /// <summary>
-    /// Shows the left hand model.
-    /// </summary>
-    private void ActivateLeftHand()
-    {
-        _leftHandRef.SetActive(true);
-    }
-
-    /// <summary>
-    /// Placeholder for deactivating collided objects when the palm closes (currently unused).
-    /// </summary>
-    private void DeactivateCollidedObjects()
-    {
-    }
-
-    /// <summary>
-    /// Hides the tray GameObject.
-    /// </summary>
-    private void DeactivateTray()
-    {
-        _pTray.SetActive(false);
+            _trayController.Close();
     }
 
     /// <summary>
@@ -2421,7 +2324,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void CleanupOldObjects()
     {
+        _trayController?.Close();
         ScenarioEnvironmentCleanup.ClearSessionObjects(_pTray);
+        _trayController = null;
     }
 
     /// <summary>

@@ -88,6 +88,7 @@
     <Compile Include="Assets\_Scripts\Notification.cs" />
     <Compile Include="Assets\_Scripts\MissionRecap.cs" />
     <Compile Include="Assets\_Scripts\PrefabCutleryManager.cs" />
+    <Compile Include="Assets\_Scripts\TrayController.cs" />
     <Compile Include="Assets\_Scripts\SoundManager.cs" />
     <Compile Include="Assets\_Scripts\SceneController.cs" />
     <Compile Include="Assets\_Scripts\MainMenuUserInterfaceUpdater.cs" />
