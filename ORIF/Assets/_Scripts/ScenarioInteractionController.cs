@@ -5,13 +5,6 @@ using UnityEngine.XR.Interaction.Toolkit;
 /// <summary>Applies XR interaction and lock visuals without driving scenario progression.</summary>
 public static class ScenarioInteractionController
 {
-    public static void SetHandInteractors(GameObject[] interactors, bool active, bool keepDirectEnabled = false)
-    {
-        Helper.ToggleArrayOfGameObjects(interactors, active);
-        if (keepDirectEnabled)
-            interactors[interactors.Length - 1].SetActive(true);
-    }
-
     public static void SetGrabEnabledForTag(string tag, bool enabled)
     {
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag(tag))

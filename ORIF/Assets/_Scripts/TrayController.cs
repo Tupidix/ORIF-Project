@@ -4,36 +4,34 @@ using UnityEngine;
 public sealed class TrayController
 {
     private readonly GameObject _tray;
-    private readonly GameObject _handVisual;
-    private readonly GameObject _directInteractor;
+    private readonly HandInteractionController _hands;
     private bool _isOpen;
 
-    public TrayController(GameObject tray, GameObject handVisual, GameObject directInteractor)
+    public TrayController(GameObject tray, HandInteractionController hands)
     {
         _tray = tray;
-        _handVisual = handVisual;
-        _directInteractor = directInteractor;
+        _hands = hands;
     }
 
     public void Open()
     {
-        _directInteractor.SetActive(true);
+        _hands.EnableLeftDirectInteractor();
         _isOpen = true;
-        _handVisual.SetActive(false);
+        _hands.SetLeftHandVisible(false);
         _tray.SetActive(true);
     }
 
     public void Close()
     {
         _isOpen = false;
-        _handVisual.SetActive(true);
+        _hands.SetLeftHandVisible(true);
         _tray.SetActive(false);
     }
 
     public void UpdatePose()
     {
         if (!_isOpen) return;
-        Transform hand = _directInteractor.transform;
+        Transform hand = _hands.LeftDirectTransform;
         Vector3 offset = hand.TransformVector(new Vector3(-0.175f, 0, 0));
         _tray.transform.rotation = hand.rotation * Quaternion.Euler(90, 0, 0);
         _tray.transform.position = hand.position + offset;

@@ -93,14 +93,12 @@ public class GameManager : MonoBehaviour
     private GameObject[] _interactorsL;
     [SerializeField]
     private GameObject[] _interactorsR;
-    private static GameObject[] _interactorsLeftRef;
-    private static GameObject[] _interactorsRightRef;
+    private HandInteractionController _hands;
     [SerializeField]
     private XRRayInteractor _interactor;
 
     // Game State and some references
     private static GameState _gameStateRef;
-    private static GameObject _leftHandRef;
     private static GameObject _stepHelperRef;
     private static GameObject _folderPaperRef;
     private GameObject _pTray;
@@ -307,26 +305,13 @@ public class GameManager : MonoBehaviour
         _uiMainMenuUpdater = GetComponent<MainMenuUserInterfaceUpdater>();
         _uiJobSheetUpdater = GetComponent<JobSheetUserInterfaceUpdater>();
         _stepHelperRef = _stepHelper;
-        _leftHandRef = _leftHand;
         _jsonLoader = GetComponent<JSONLoader>();
     }
 
-    /// <summary>
-    /// Copies left and right interactor arrays to their static reference counterparts.
-    /// </summary>
+    /// <summary>Initializes the hand coordinator from the existing Inspector references.</summary>
     private void InitializeInteractors()
     {
-        _interactorsLeftRef = new GameObject[_interactorsL.Length];
-        for (int i = 0; i < _interactorsLeftRef.Length; i++)
-        {
-            _interactorsLeftRef[i] = _interactorsL[i];
-        }
-
-        _interactorsRightRef = new GameObject[_interactorsR.Length];
-        for (int i = 0; i < _interactorsRightRef.Length; i++)
-        {
-            _interactorsRightRef[i] = _interactorsR[i];
-        }
+        _hands = new HandInteractionController(_interactorsL, _interactorsR, _leftHand);
     }
 
     /// <summary>
@@ -343,8 +328,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void CreateTray()
     {
-        _pTray = ScenarioEnvironmentFactory.CreateHiddenTray(_tray, _interactorsL[_interactorsL.Length - 1].transform.position);
-        _trayController = new TrayController(_pTray, _leftHandRef, _interactorsL[_interactorsL.Length - 1]);
+        _pTray = ScenarioEnvironmentFactory.CreateHiddenTray(_tray, _hands.LeftDirectTransform.position);
+        _trayController = new TrayController(_pTray, _hands);
     }
 
     /// <summary>
@@ -1049,7 +1034,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable, false to disable.</param>
     private void ToggleInteractorsR(bool active)
     {
-        ScenarioInteractionController.SetHandInteractors(_interactorsR, active);
+        _hands.SetRightInteractors(active);
     }
 
     /// <summary>
@@ -1058,7 +1043,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable, false to disable.</param>
     private void ToggleInteractorsL(bool active)
     {
-        ScenarioInteractionController.SetHandInteractors(_interactorsL, active);
+        _hands.SetLeftInteractors(active);
     }
 
     /// <summary>
@@ -1235,7 +1220,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable ray interactors, false to disable them.</param>
     private void ToggleInteractorsLeftWithDirectEnable(bool active)
     {
-        ScenarioInteractionController.SetHandInteractors(_interactorsL, active, true);
+        _hands.SetLeftInteractors(active, true);
     }
 
     /// <summary>
@@ -1244,7 +1229,7 @@ public class GameManager : MonoBehaviour
     /// <param name="active">True to enable ray interactors, false to disable them.</param>
     private void ToggleInteractorsRightWithDirectEnable(bool active)
     {
-        ScenarioInteractionController.SetHandInteractors(_interactorsR, active, true);
+        _hands.SetRightInteractors(active, true);
     }
 
     /// <summary>
@@ -2297,7 +2282,7 @@ public class GameManager : MonoBehaviour
     private void ResetFlagsAndReferences()
     {
         gameEnded = false;
-        _leftHandRef.SetActive(true);
+        _hands.SetLeftHandVisible(true);
         _celebrationEndGameRef.SetActive(false);
         _celebrationEndGameTipRef.SetActive(false);
         _progress.ResetMenus();

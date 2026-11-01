@@ -74,6 +74,7 @@
     <Compile Include="Assets\_Scripts\CutleryPlacementValidator.cs" />
     <Compile Include="Assets\_Scripts\ExtraPlacementChecker.cs" />
     <Compile Include="Assets\_Scripts\ScenarioProgress.cs" />
+    <Compile Include="Assets\_Scripts\HandInteractionController.cs" />
     <Compile Include="Assets\_Scripts\DictionnaryConverter.cs" />
     <Compile Include="Assets\_Scripts\ScenarioInteractionController.cs" />
     <Compile Include="Assets\_Scripts\JobSheetUserInterfaceUpdater.cs" />
