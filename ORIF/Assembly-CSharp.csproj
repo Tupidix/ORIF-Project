@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\_Scripts\GameManager.cs" />
+    <Compile Include="Assets\_Scripts\TrollyRecoveryNotice.cs" />
     <Compile Include="Assets\_Scripts\InterfacePresentationController.cs" />
     <Compile Include="Assets\_Scripts\GrappableCutlery.cs" />
     <Compile Include="Assets\_Scripts\Helper.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Assets\_Scripts\ScenarioProgress.cs" />
     <Compile Include="Assets\_Scripts\HandInteractionController.cs" />
     <Compile Include="Assets\_Scripts\DictionnaryConverter.cs" />
+    <Compile Include="Assets\_Scripts\FallenItemRecovery.cs" />
     <Compile Include="Assets\_Scripts\ScenarioInteractionController.cs" />
     <Compile Include="Assets\_Scripts\JobSheetUserInterfaceUpdater.cs" />
     <Compile Include="Assets\_Scripts\JSONLoader.cs" />

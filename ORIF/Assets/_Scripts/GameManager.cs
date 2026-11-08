@@ -1084,6 +1084,9 @@ public class GameManager : MonoBehaviour
     private void InstantiateAndPlaceCutleriesOnTrolly(GameObject pTrolly)
     {
         ScenarioEnvironmentFactory.PopulateTrolly(pTrolly, _trollyCutleriesRef, _instantiatedCutleriesPrefabsOnTrolly);
+        var recoveryNotice = pTrolly.GetComponent<TrollyRecoveryNotice>();
+        if (recoveryNotice == null)
+            recoveryNotice = pTrolly.AddComponent<TrollyRecoveryNotice>();
         foreach (var group in _instantiatedCutleriesPrefabsOnTrolly.Values)
         {
             foreach (var interactable in group.GetComponentsInChildren<XRGrabInteractable>(true))
@@ -1092,6 +1095,22 @@ public class GameManager : MonoBehaviour
                 if (binding == null)
                     binding = interactable.gameObject.AddComponent<CutleryInteractionBinding>();
                 binding.Initialize(this, interactable);
+                string itemTag = interactable.gameObject.tag;
+                if (itemTag == "Plate" || itemTag.Contains("Glass") || itemTag.Contains("Fork") ||
+                    itemTag.Contains("Knife") || itemTag.Contains("Spoon"))
+                {
+                    var recovery = interactable.GetComponent<FallenItemRecovery>();
+                    if (recovery == null)
+                        recovery = interactable.gameObject.AddComponent<FallenItemRecovery>();
+                    recovery.Initialize(interactable, recoveryNotice, pTrolly.transform.position.y,
+                        () => _gameStateRef == GameState.PlayScenario && !gameEnded &&
+                              !_pauseController.IsOpen && !_placementLocks.IsLocked(_progress.MenuIndex, itemTag),
+                        item =>
+                        {
+                            if (_pTray != null)
+                                _pTray.GetComponent<TrayCollider>().ReleaseObject(item);
+                        });
+                }
             }
         }
     }

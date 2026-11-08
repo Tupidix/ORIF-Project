@@ -263,4 +263,11 @@ public class TrayCollider : MonoBehaviour
         _occupiedSlots.Clear();
         _objectSlotMapping.Clear();
     }
+
+    public void ReleaseObject(GameObject obj)
+    {
+        if (_objectSlotMapping.ContainsKey(obj))
+            ReleaseSlot(obj);
+        _trackedObjects.Remove(obj);
+    }
 }
