@@ -160,8 +160,6 @@ public class GameManager : MonoBehaviour
     private static bool _isTenSecondsAchieved = false;
     private Vector3 _trollyInitialLocalPosition;
     private Quaternion _trollyInitialLocalRotation;
-    private static bool _isFirstCutleryZonePlacementChecked = false;
-    private static bool _isFirstCutleryPlacedInZoneB = false;
     private static bool _areCutleriesAllPlaced = false;
     private static bool _areExtrasAllPlaced = false;
     private static bool _extraPlacement = false;
@@ -177,6 +175,7 @@ public class GameManager : MonoBehaviour
     private ScenarioSelectionController _scenarioSelection;
     private MenuController _menus;
     private CutleryPlacementController _cutleryController;
+    private readonly PlacementZoneController _placementZones = new PlacementZoneController();
     private PauseMenuController _pauseController;
     private InterfacePresentationController _presentation;
     private Coroutine _scenarioReload;
@@ -307,7 +306,7 @@ public class GameManager : MonoBehaviour
         _menus = new MenuController(_mainMenuSelectionUI, _mainMenuScenarioPickerUI,
             _tipsMainMenu, _tipsLearningMode, _tipsExamMode, _scenarioSelection);
         _cutleryController = new CutleryPlacementController(_progress, _actionLog, _placementLocks,
-            _defaultCutleryMaterial, _defaultGlassMaterial, PrepareExamRelease, UpdateReport, UpdateStep, CheckEndScenario);
+            _defaultCutleryMaterial, _defaultGlassMaterial, _placementZones.PrepareExamRelease, UpdateReport, UpdateStep, CheckEndScenario);
     }
 
     /// <summary>Initializes the hand coordinator from the existing Inspector references.</summary>
@@ -1391,100 +1390,6 @@ public class GameManager : MonoBehaviour
         _cutleryController.HandleGrab(tag, _selectedScenario);
     }
 
-    /// <summary>Coordinates the first exam placement with the scene layout.</summary>
-    private void PrepareExamRelease(GameObject item)
-    {
-        CheckForPlacementArea(item);
-        if (_isFirstCutleryPlacedInZoneB && !_isFirstCutleryZonePlacementChecked)
-            SwapMenus();
-        _isFirstCutleryZonePlacementChecked = true;
-    }
-
-    /// <summary>
-    /// Determines whether a placed object is closer to placement zone B than zone A
-    /// by comparing distances to each zone's collider center.
-    /// </summary>
-    /// <param name="obj">The placed GameObject to test.</param>
-    /// <returns>True if the object is closer to zone B.</returns>
-    private bool IsObjectInAreaB(GameObject obj)
-    {
-        print("IsObjectInAreaB");
-        var placementAreas = GameObject.FindGameObjectsWithTag("TablePlacementArea");
-
-        var areaA = placementAreas[0];
-        var areaB = placementAreas[1];
-
-        float distanceToZoneA = Vector3.Distance(obj.transform.position, areaA.GetComponent<BoxCollider>().bounds.center);
-        float distanceToZoneB = Vector3.Distance(obj.transform.position, areaB.GetComponent<BoxCollider>().bounds.center);
-
-        if (distanceToZoneA < distanceToZoneB)
-        {
-            print("Object is closer to Zone A");
-            return false;
-        }
-        else
-        {
-            print("Object is closer to Zone B");
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Checks which placement zone the first cutlery was placed in (only on the first placement).
-    /// Sets the zone B flag if applicable.
-    /// </summary>
-    /// <param name="obj">The first placed cutlery object.</param>
-    private void CheckForPlacementArea(GameObject obj)
-    {
-        print("CheckForPlacementArea");
-        print($"_isFirstCutleryZonePlacementChecked -> {_isFirstCutleryZonePlacementChecked}");
-        if (_isFirstCutleryZonePlacementChecked == false)
-        {
-            _isFirstCutleryPlacedInZoneB = IsObjectInAreaB(obj);
-        }
-    }
-
-    /// <summary>
-    /// Reverses the menu index to start serving from the last menu (zone B placement).
-    /// </summary>
-    private void ReverseMenusOrder()
-    {
-        print("The first object placed is in zone B, reversing the menu order.");
-        _progress.SelectLastMenu(_selectedScenario.menus.Length);
-    }
-
-    /// <summary>
-    /// Cyclically shifts the positions and rotations of all menu GameObjects in the scene,
-    /// effectively swapping their physical locations.
-    /// </summary>
-    private void SwapMenus()
-    {
-        print("SwapMenus");
-        var menus = GameObject.FindGameObjectsWithTag("Menu");
-
-        if (menus.Length < 2)
-        {
-            Debug.LogWarning("Il faut au moins deux menus pour effectuer un échange.");
-            return;
-        }
-
-        var tempPosition = menus[0].transform.position;
-        var tempRotation = menus[0].transform.rotation;
-
-        for (int i = 0; i < menus.Length - 1; i++)
-        {
-            menus[i].transform.position = menus[i + 1].transform.position;
-            menus[i].transform.rotation = menus[i + 1].transform.rotation;
-        }
-
-        menus[menus.Length - 1].transform.position = tempPosition;
-        menus[menus.Length - 1].transform.rotation = tempRotation;
-
-        Debug.Log("Les positions et rotations des menus ont été échangées.");
-    }
-
-
-
     /// <summary>
     /// Handles a release event for a cutlery item: validates placement zone (Exam mode),
     /// checks if the item belongs to the menu, validates position/rotation/order
@@ -1886,8 +1791,7 @@ public class GameManager : MonoBehaviour
         _actionLog.Reset();
         _placementLocks.Reset();
         _isTenSecondsAchieved = false;
-        _isFirstCutleryZonePlacementChecked = false;
-        _isFirstCutleryPlacedInZoneB = false;
+        _placementZones.Reset();
         _areCutleriesAllPlaced = false;
         _areExtrasAllPlaced = false;
     }

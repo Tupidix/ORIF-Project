@@ -84,6 +84,7 @@
     <Compile Include="Assets\_Scripts\ScenarioActionLog.cs" />
     <Compile Include="Assets\_Scripts\TablePlacementPreview.cs" />
     <Compile Include="Assets\LudicWorlds\DebugPanel\DebugPanel.cs" />
+    <Compile Include="Assets\_Scripts\PlacementZoneController.cs" />
     <Compile Include="Assets\_Scripts\Structures.cs" />
     <Compile Include="Assets\_Scripts\TrayCollider.cs" />
     <Compile Include="Assets\_Scripts\CountdownTimer.cs" />
