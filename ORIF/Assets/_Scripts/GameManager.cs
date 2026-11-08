@@ -182,6 +182,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Notification notification;
 
+    [SerializeField] private GameObject _fallenItemUI;
+    [SerializeField] private Vector3 _fallenItemOffset = new Vector3(0, 1.5f, 0);
+
     [SerializeField]
     private BoxCollider _trollyCollider;
 
@@ -194,6 +197,8 @@ public class GameManager : MonoBehaviour
         InitializeReferences();
         InitializeInteractors();
         InitializeScenarioAndMenus();
+        if (_fallenItemUI != null)
+            _fallenItemUI.SetActive(false);
     }
 
     private void Start()
@@ -1087,6 +1092,7 @@ public class GameManager : MonoBehaviour
         var recoveryNotice = pTrolly.GetComponent<TrollyRecoveryNotice>();
         if (recoveryNotice == null)
             recoveryNotice = pTrolly.AddComponent<TrollyRecoveryNotice>();
+        recoveryNotice.Initialize(_fallenItemUI, _fallenItemOffset);
         foreach (var group in _instantiatedCutleriesPrefabsOnTrolly.Values)
         {
             foreach (var interactable in group.GetComponentsInChildren<XRGrabInteractable>(true))

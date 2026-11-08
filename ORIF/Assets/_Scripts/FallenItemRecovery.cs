@@ -58,6 +58,6 @@ public sealed class FallenItemRecovery : MonoBehaviour
         _body.position = position;
         _body.rotation = rotation;
         _body.WakeUp();
-        _notice.Show(gameObject.tag);
+        _notice.Show();
     }
 }
