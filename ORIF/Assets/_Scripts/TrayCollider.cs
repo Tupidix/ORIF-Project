@@ -4,7 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 /// <summary>
 /// Manages object snapping to tray slots using physics proximity detection.
-/// Tracks nearby grabbable objects and smoothly moves them into available slots.
+/// Tracks nearby grabbable objects and keeps released objects in their assigned slots.
 /// </summary>
 public class TrayCollider : MonoBehaviour
 {
@@ -15,8 +15,6 @@ public class TrayCollider : MonoBehaviour
     private Dictionary<GameObject, int> _objectSlotMapping;
 
     private const float ProximityThreshold = 0.3f;
-    private const float FixedPositionLerpSpeed = 10f;
-    private const float FixedRotationLerpSpeed = 10f;
 
     private static readonly HashSet<string> ExcludedTags = new HashSet<string>
     {
@@ -47,11 +45,12 @@ public class TrayCollider : MonoBehaviour
         var objectsToRemove = new List<GameObject>();
         foreach (var obj in _trackedObjects)
         {
-            if (!IsObjectInColliders(obj, nearbyColliders))
+            if (obj == null || IsHeld(obj) || (!_objectSlotMapping.ContainsKey(obj) && !IsObjectInColliders(obj, nearbyColliders)))
             {
                 ReleaseSlot(obj);
                 objectsToRemove.Add(obj);
-                Debug.Log($"Removed {obj.name} from tray tracking");
+                if (obj != null)
+                    Debug.Log($"Removed {obj.name} from tray tracking");
             }
         }
         foreach (var obj in objectsToRemove)
@@ -85,7 +84,7 @@ public class TrayCollider : MonoBehaviour
         foreach (var collider in nearbyColliders)
         {
             if (!IsGrabbableObject(collider)) continue;
-            var obj = collider.gameObject;
+            var obj = collider.GetComponentInParent<XRGrabInteractable>().gameObject;
             TrackObjectIfNew(obj);
             AssignSlotIfNeeded(obj);
         }
@@ -116,20 +115,20 @@ public class TrayCollider : MonoBehaviour
     }
 
     /// <summary>
-    /// Smoothly interpolates all tracked objects toward their assigned slot positions.
+    /// Keeps tracked objects at their assigned slot poses.
     /// </summary>
     private void MoveTrackedObjectsToSlots()
     {
         foreach (var obj in _trackedObjects)
         {
-            if (!_objectSlotMapping.ContainsKey(obj)) continue;
+            if (obj == null || IsHeld(obj) || !_objectSlotMapping.ContainsKey(obj)) continue;
             int slotIndex = _objectSlotMapping[obj];
             MoveObjectToSlot(obj, slots[slotIndex]);
         }
     }
 
     /// <summary>
-    /// Smoothly moves a single object toward a target slot using physics-based interpolation.
+    /// Places an object at its target slot without competing interpolation.
     /// </summary>
     /// <param name="obj">The GameObject to move.</param>
     /// <param name="slot">The target slot transform.</param>
@@ -138,8 +137,9 @@ public class TrayCollider : MonoBehaviour
         Rigidbody rb = obj.GetComponent<Rigidbody>();
         Quaternion targetRotation = ComputeTargetRotation(obj, slot);
         FreezeRigidbody(rb);
-        LerpToPosition(rb, obj.transform.position, slot.position);
-        SlerpToRotation(rb, obj.transform.rotation, targetRotation);
+        rb.position = slot.position;
+        rb.rotation = targetRotation;
+        obj.transform.SetPositionAndRotation(slot.position, targetRotation);
     }
 
     /// <summary>
@@ -177,37 +177,15 @@ public class TrayCollider : MonoBehaviour
     }
 
     /// <summary>
-    /// Interpolates a Rigidbody position toward a target using MovePosition.
-    /// </summary>
-    /// <param name="rb">The Rigidbody to move.</param>
-    /// <param name="current">The current position.</param>
-    /// <param name="target">The target position.</param>
-    private void LerpToPosition(Rigidbody rb, Vector3 current, Vector3 target)
-    {
-        rb.MovePosition(Vector3.Lerp(current, target, FixedPositionLerpSpeed * Time.fixedDeltaTime));
-    }
-
-    /// <summary>
-    /// Interpolates a Rigidbody rotation toward a target using MoveRotation.
-    /// </summary>
-    /// <param name="rb">The Rigidbody to rotate.</param>
-    /// <param name="current">The current rotation.</param>
-    /// <param name="target">The target rotation.</param>
-    private void SlerpToRotation(Rigidbody rb, Quaternion current, Quaternion target)
-    {
-        rb.MoveRotation(Quaternion.Slerp(current, target, FixedRotationLerpSpeed * Time.fixedDeltaTime));
-    }
-
-    /// <summary>
     /// Returns whether a collider belongs to a valid grabbable object (enabled XRGrabInteractable, not excluded by tag).
     /// </summary>
     /// <param name="collider">The collider to validate.</param>
     /// <returns>True if the collider represents a grabbable object.</returns>
     private bool IsGrabbableObject(Collider collider)
     {
-        XRGrabInteractable interactable = collider.GetComponent<XRGrabInteractable>();
-        if (interactable == null || !interactable.enabled) return false;
-        return !ExcludedTags.Contains(collider.tag);
+        XRGrabInteractable interactable = collider.GetComponentInParent<XRGrabInteractable>();
+        if (interactable == null || !interactable.enabled || interactable.isSelected) return false;
+        return interactable.GetComponent<Rigidbody>() != null && !ExcludedTags.Contains(interactable.gameObject.tag);
     }
 
     /// <summary>
@@ -217,10 +195,8 @@ public class TrayCollider : MonoBehaviour
     /// <param name="slotIndex">The index of the slot to assign.</param>
     private void AssignSlotToObject(GameObject obj, int slotIndex)
     {
-        Rigidbody rb = obj.GetComponent<Rigidbody>();
         Transform slot = slots[slotIndex];
-        rb.MovePosition(slot.position);
-        rb.MoveRotation(slot.rotation);
+        MoveObjectToSlot(obj, slot);
         _occupiedSlots.Add(slotIndex);
         _objectSlotMapping[obj] = slotIndex;
     }
@@ -269,5 +245,27 @@ public class TrayCollider : MonoBehaviour
         if (_objectSlotMapping.ContainsKey(obj))
             ReleaseSlot(obj);
         _trackedObjects.Remove(obj);
+    }
+
+    private static bool IsHeld(GameObject obj)
+    {
+        var grab = obj.GetComponent<XRGrabInteractable>();
+        return grab != null && grab.isSelected;
+    }
+
+    /// <summary>Moves carried items with the tray before the next proximity check can lose them.</summary>
+    public void MoveCarriedObjectsWithTray()
+    {
+        for (int i = _trackedObjects.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = _trackedObjects[i];
+            if (obj == null || IsHeld(obj))
+            {
+                ReleaseObject(obj);
+                continue;
+            }
+            if (!_objectSlotMapping.TryGetValue(obj, out int slotIndex)) continue;
+            MoveObjectToSlot(obj, slots[slotIndex]);
+        }
     }
 }

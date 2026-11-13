@@ -1758,7 +1758,7 @@ public class GameManager : MonoBehaviour
     public void HandleOpenPalmUpLeftEnded()
     {
         if (_gameStateRef == GameState.PlayScenario)
-            _trayController.Close();
+            _trayController.HandlePalmGestureEnded();
     }
 
     /// <summary>
