@@ -239,11 +239,15 @@ public class GameManager : MonoBehaviour
         UpdateTablePlacement();
 
 
-        _trayController?.UpdatePose();
 
         _presentation.UpdatePose(Camera.main, notification.GetNotificationObject());
 
         UpdateScenarioTimer();
+    }
+
+    private void LateUpdate()
+    {
+        _trayController?.UpdatePose();
     }
 
     private void UpdateScenarioTimer()
